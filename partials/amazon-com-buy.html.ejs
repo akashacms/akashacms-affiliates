@@ -1,0 +1,7 @@
+<form method="GET" action="https://www.amazon.com/gp/aws/cart/add.html"<%- targetBlank %><%- formDisplay %>>
+<input type="hidden" name="AssociateTag" value="<%= affcode %>"/>
+<!-- input type="hidden" name="SubscriptionId" value="AWSAccessKeyId"/ -->
+<input type="hidden" name="ASIN.1" value="<%= ASIN %>"/>
+<input type="hidden" name="Quantity.1" value="1"/>
+<input type="image" name="add" value="Buy from Amazon.com" border="0" alt="Buy from Amazon.com" src="https://images.amazon.com/images/G/01/associates/add-to-cart.gif">
+</form>

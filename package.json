@@ -1,0 +1,22 @@
+{
+  "name": "akashacms-affiliates",
+  "version": "0.1.0",
+  "description": "AkashaCMS plugin to simplify generating affiliate links",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akashacms/akashacms-affiliates.git"
+  },
+  "author": "David Herron <david@davidherron.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akashacms/akashacms-affiliates/issues"
+  },
+  "homepage": "https://github.com/akashacms/akashacms-affiliates#readme",
+  "dependencies": {
+      "js-yaml": "^3.8.4"
+  }
+}

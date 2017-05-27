@@ -1,0 +1,6 @@
+<form method="POST" action="https://www.amazon.es/exec/obidos/dt/assoc/handle-buy-box=<%= ASIN %>"<%- targetBlank %><%- formDisplay %>>
+<input type="hidden" name="<%= ASIN %>" value="1">
+<input type="hidden" name="tag-value" value="<%= affcode %>">
+<input type="hidden" name="tag_value" value="<%= affcode %>">
+<input type="image" name="submit.add-to-cart" value="Comprar en Amazon.es" border="0" alt="Comprar en Amazon.es" src="https://images.amazon.com/images/G/30/associates/buttons/buy_4">
+</form>

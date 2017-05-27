@@ -1,0 +1,67 @@
+<div class="affiliateproduct" style="clear: both;"<% if (anchorName !== undefined) { %> id="<%= anchorName %>"<% } %>>
+    <% if (typeof productimgurl !== 'undefined') { %>
+    <a href="<%= productbuyurl %>" rel="nofollow"><img class="affiliateimage" src="<%= productimgurl %>" width="150px" align="right"/></a>
+    <% } %>
+    <div class="productdescription">
+        <h3 class="infobox-title"><a class="affproductname" href="<%= productbuyurl %>" rel="<%= productrel %>"><%= productname %></a></h3>
+        <%- productdescription %>
+        <% if (partialBody) { %><%- partialBody %><% } %>
+    </div>
+
+    <%
+
+    if (typeof productattributes !== 'undefined') {
+        %><ul><%
+        for (var productattr of productattributes) {
+            %><li><%= productattr %></li><%
+        }
+        %></ul><%
+    }
+
+    if (typeof productamzn !== 'undefined') {
+        for (var amzn of productamzn) {
+            if (typeof amzn !== 'undefined' && typeof amzn.affcode !== 'undefined') {
+                if (amzn.countryCode === "ca") {
+                    %><amazon-ca-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "co-jp") {
+                    %><amazon-co-jp-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "co-uk") {
+                    %><amazon-co-uk-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "com") {
+                    %><amazon-com-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "de") {
+                    %><amazon-de-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "es") {
+                    %><amazon-es-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "fr") {
+                    %><amazon-fr-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else if (amzn.countryCode === "it") {
+                    %><amazon-it-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                }
+            }
+        }
+    }
+
+    if (typeof productamznasin !== 'undefined') {
+        // do buy now button for amzn
+        %>
+        <form class="form-inline" method="GET" action="https://www.amazon.com/gp/aws/cart/add.html">
+            <input type="hidden" name="AssociateTag" value="<%= amznassociatetag %>"/>
+            <input type="hidden" name="ASIN.1" value="<%= productamznasin %>"/>
+            <input type="hidden" name="Quantity.1" value="1"/>
+            <input type="image" name="add" value="Buy from Amazon.com" border="0" alt="Buy from Amazon.com" src="//images.amazon.com/images/G/01/associates/add-to-cart.gif">
+        </form>
+        <%
+    }
+
+    if (typeof productlinks !== 'undefined') {
+        %><span><%
+            for (var link of productlinks) {
+                %>[<a href="<%= link.url %>" rel="<%= link.rel %>"><%= link.text %></a>] <%
+            }
+        %></span><%
+    }
+
+    %>
+
+</div>

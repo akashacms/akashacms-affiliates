@@ -1,0 +1,6 @@
+<form method="post" action="https://www.amazon.co.jp/gp/aws/cart/add.html"<%- targetBlank %><%- formDisplay %>>
+<input type="hidden" name="ASIN.1" value="<%= ASIN %>">
+<input type="hidden" name="Quantity.1" value="1">
+<input type="hidden" name="AssociateTag" value="<%= affcode %>">
+<input type="image" name="submit.add-to-cart" src= "https://rcm-images.amazon.com/images/G/09/extranet/associates/buttons/remote-buy-jp1.gif" alt="buy in amazon.co.jp">
+</form>
