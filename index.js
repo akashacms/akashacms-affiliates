@@ -46,6 +46,12 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
     }
 
     affiliateProduct(config, productid, data) {
+        if (data.productamzn) {
+            data.productamzn = data.productamzn.map(item => {
+                item.affcode = config.pluginData(pluginName).amazonAffiliateCode[item.countryCode];
+                return item;
+            });
+        }
         config.pluginData(pluginName).products[productid] = data;
         return this;
     }
@@ -62,6 +68,8 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
         }
         return this;
     }
+
+
 };
 
 module.exports.mahabhuta = new mahabhuta.MahafuncArray(pluginName, {});
@@ -78,11 +86,8 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             throw new Error(`Unknown affiliate product ${productid}`);
         }
         var data = metadata.config.pluginData(pluginName).products[productid];
-        if (data.productamzn) {
-            data.productamzn = data.productamzn.map(item => {
-                item.affcode = metadata.config.pluginData(pluginName).amazonAffiliateCode[item.countryCode];
-                return item;
-            });
+        if (!data) {
+            throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
         var body = $element.html();
         data.partialBody = body;
@@ -90,6 +95,42 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
     }
 }
 module.exports.mahabhuta.addMahafunc(new AffiliateProductContent());
+
+class AffiliateProductLink extends mahabhuta.CustomElement {
+    get elementName() { return "affiliate-product-link"; }
+    process($element, metadata, dirty) {
+        dirty();
+        var productid = $element.attr('productid');
+        var type = $element.attr('type');
+        var width = $element.attr('width');
+        var template = $element.attr('template');
+
+        if (!productid)
+            return next(new Error(`affiliate-product-link: no productid= provided in ${metadata.document.path}`));
+        if (!type) type = "card";
+
+        var data = metadata.config.pluginData(pluginName).products[productid];
+        if (!data) {
+            throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
+        }
+        var href = data.href;
+        if (data.anchorName) href += '#' + data.anchorName;
+
+        if (type === "card") {
+            if (!template) template = "affiliate-product-link-card.html.ejs";
+            return akasha.partial(metadata.config, template, {
+                productid: productid, href: href,
+                title: data.productname, thumburl: data.productimgurl,
+                content: $element.contents(),
+                width: width ? width : "200px"
+            });
+        } else if (type === "link") {
+            return Promise.resolve(`<a href='${href}'>${data.productname}</a>`);
+            next();
+        }
+    }
+}
+module.exports.mahabhuta.addMahafunc(new AffiliateProductLink());
 
 class AmazonBuyButtonElement extends mahabhuta.CustomElement {
     get elementName() { throw new Error("Use a subclass"); }

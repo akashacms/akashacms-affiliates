@@ -4,7 +4,7 @@
     <% } %>
     <div class="productdescription">
         <h3 class="infobox-title"><a class="affproductname" href="<%= productbuyurl %>" rel="<%= productrel %>"><%= productname %></a></h3>
-        <%- productdescription %>
+        <% if (typeof productdescription !== 'undefined' && productdescription) { %><%- productdescription %><% } %>
         <% if (partialBody) { %><%- partialBody %><% } %>
     </div>
 
@@ -18,7 +18,7 @@
         %></ul><%
     }
 
-    if (typeof productamzn !== 'undefined') {
+    if (typeof productamzn !== 'undefined' && productamzn) {
         for (var amzn of productamzn) {
             if (typeof amzn !== 'undefined' && typeof amzn.affcode !== 'undefined') {
                 if (amzn.countryCode === "ca") {
