@@ -152,4 +152,4 @@ A full example is :-
           countryCode: com
 ```
 
-It is important to put quotes around the `code` and `asin` attributes.  Valid Amazon ASIN's includes numerical strings that look like an octal number.  If a particular ASIN starts with `0` and then contains digits between `0` and `7` then the YAML parser will interpret that product ID as an octal number, leading you to scratching your head and muttering about what the ____ is going on.  It's simple to just put quotes around those attributes so that YAML doesn't help you by interpreting a product ID as an octal number.
+It is important to put quotes around the `code` and `asin` attributes.  Valid Amazon ASIN's includes numerical strings that can look like an octal number.  If a particular ASIN starts with `0` and then contains digits between `0` and `7` then the YAML parser will interpret that product ID as an octal number, leading you to scratching your head and muttering about what the ____ is going on.  It's simple to just put quotes around those attributes so that YAML doesn't help you by interpreting a product ID as an octal number.
