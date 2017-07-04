@@ -143,11 +143,11 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
         if (urlP.protocol || urlP.host) {
 
             let amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "com");
-            console.log(`${urlP.hostname} is amazon.com? ${/amazon.com$/i.test(urlP.hostname)} amazonCode ${amazonCode}`);
+            // console.log(`${urlP.hostname} is amazon.com? ${/amazon.com$/i.test(urlP.hostname)} amazonCode ${amazonCode}`);
             if (/amazon.com$/i.test(urlP.hostname) && amazonCode) {
                 akasha.linkRelSetAttr($link, 'nofollow', true);
                 $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-                console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
+                // console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
             }
 
             amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "ca");
