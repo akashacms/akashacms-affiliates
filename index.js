@@ -43,6 +43,8 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
         config.addMahabhuta(module.exports.mahabhuta);
         config.pluginData(pluginName).products = [];
         config.pluginData(pluginName).amazonAffiliateCode = [];
+        config.pluginData(pluginName).noSkimlinks = [];
+        config.pluginData(pluginName).noViglinks = [];
     }
 
     affiliateProduct(config, productid, data) {
@@ -61,6 +63,38 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
         return this;
     }
 
+    amazonCodeForCountry(config, countryCode) {
+        return config.pluginData(pluginName).amazonAffiliateCode[countryCode];
+    }
+
+    noSkimlinksDomain(config, domain) {
+        config.pluginData(pluginName).noSkimlinks.push(domain);
+        return this;
+    }
+
+    doNoSkimlinksForDomain(config, domain) {
+        for (var noskimdnm of config.pluginData(pluginName).noSkimlinks) {
+            if (domain.match(noskimdnm)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    noViglinksDomain(config, domain) {
+        config.pluginData(pluginName).noViglinks.push(domain);
+        return this;
+    }
+
+    doNoViglinksForDomain(config, domain) {
+        for (var novigdnm of config.pluginData(pluginName).noViglinks) {
+            if (domain.match(novigdnm)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     loadAffiliateProducts(config, yamlFile) {
         var doc = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
         for (var product of doc.products) {
@@ -72,7 +106,104 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
 
 };
 
+function setAmazonAffiliateTag(href, tag) {
+    var urlP = url.parse(href, true, true);
+    if (! urlP.hasOwnProperty('query')) {
+        urlP.query = {};
+    }
+    urlP.query.tag = tag;
+    urlP.search = undefined;
+    return url.format(urlP);
+}
+
 module.exports.mahabhuta = new mahabhuta.MahafuncArray(pluginName, {});
+
+/**
+ * Modify the link as appropriate to rules and regulations about affiliate links.
+ * For example, rel=nofollow is required and we must ensure it is set for all links.
+ *
+ * The actions to take are:
+ * 1. DONE For specific domains, ensure the link has rel=nofollow
+ * 2. DONE If it's a domain where we are to add affiliate tags, do so
+ * 3. If it's a domain where noskim or noviglink is appropriate, do so
+ *
+ */
+class AffiliateLinkMunger extends mahabhuta.Munger {
+    get selector() { return "html body a"; }
+
+    process($, $link, metadata, dirty, done) {
+        var href     = $link.attr('href');
+        var rel      = $link.attr('rel');
+
+        if (!href) return Promise.resolve("");
+
+        // We only act on the link if it is external -- has a PROTOCOL and HOST
+        //
+        const urlP = url.parse(href, true, true);
+        if (urlP.protocol || urlP.host) {
+
+            let amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "com");
+            console.log(`${urlP.hostname} is amazon.com? ${/amazon.com$/i.test(urlP.hostname)} amazonCode ${amazonCode}`);
+            if (/amazon.com$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+                console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "ca");
+            if (/amazon.ca$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "co-jp");
+            if (/amazon.co.jp$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "co-uk");
+            if (/amazon.co.uk$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "de");
+            if (/amazon.de$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "es");
+            if (/amazon.es$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "fr");
+            if (/amazon.fr$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "it");
+            if (/amazon.it$/i.test(urlP.hostname) && amazonCode) {
+                akasha.linkRelSetAttr($link, 'nofollow', true);
+                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+            }
+
+            if (metadata.config.plugin(pluginName).doNoSkimlinksForDomain(metadata.config, urlP.hostname)) {
+                akasha.linkRelSetAttr($link, 'noskim', true);
+            }
+            if (metadata.config.plugin(pluginName).doNoViglinksForDomain(metadata.config, urlP.hostname)) {
+                akasha.linkRelSetAttr($link, 'norewrite', true);
+            }
+        }
+
+        return Promise.resolve("");
+    }
+}
+module.exports.mahabhuta.addMahafunc(new AffiliateLinkMunger());
 
 class AffiliateProductContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product"; }
