@@ -138,7 +138,6 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
         if (!href) return Promise.resolve("");
 
         // We only act on the link if it is external -- has a PROTOCOL and HOST
-        //
         const urlP = url.parse(href, true, true);
         if (urlP.protocol || urlP.host) {
 
