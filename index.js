@@ -25,8 +25,8 @@ const path      = require('path');
 const util      = require('util');
 const akasha    = require('akasharender');
 const mahabhuta = require('mahabhuta');
-const yaml = require('js-yaml');
-
+const yaml      = require('js-yaml');
+const domainMatch = require('domain-match');
 
 const log   = require('debug')('akasha:affiliates-plugin');
 const error = require('debug')('akasha:error-affiliates-plugin');
@@ -141,55 +141,25 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
         const urlP = url.parse(href, true, true);
         if (urlP.protocol || urlP.host) {
 
-            let amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "com");
-            // console.log(`${urlP.hostname} is amazon.com? ${/amazon.com$/i.test(urlP.hostname)} amazonCode ${amazonCode}`);
-            if (/amazon.com$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-                // console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "ca");
-            if (/amazon.ca$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "co-jp");
-            if (/amazon.co.jp$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "co-uk");
-            if (/amazon.co.uk$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "de");
-            if (/amazon.de$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "es");
-            if (/amazon.es$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "fr");
-            if (/amazon.fr$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
-
-            amazonCode = metadata.config.plugin(pluginName).amazonCodeForCountry(metadata.config, "it");
-            if (/amazon.it$/i.test(urlP.hostname) && amazonCode) {
-                akasha.linkRelSetAttr($link, 'nofollow', true);
-                $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
-            }
+            [
+                { country: "com", domain: '*.amazon.com' /* /amazon\.com$/i */ },
+                { country: "ca",  domain: '*.amazon.ca' /* /amazon\.ca$/i */ },
+                { country: "co-jp",  domain: '*.amazon.co.jp' /* /amazon\.co\.jp$/i */ },
+                { country: "co-uk",  domain: '*.amazon.co.uk' /* /amazon\.co\.uk$/i */ },
+                { country: "de",  domain: '*.amazon.de' /* /amazon\.de$/i */ },
+                { country: "es",  domain: '*.amazon.es' /* /amazon\.es$/i */ },
+                { country: "fr",  domain: '*.amazon.fr' /* /amazon\.fr$/i */ },
+                { country: "it",  domain: '*.amazon.it' /* /amazon\.it$/i */ }
+            ].forEach(amazonSite => {
+                let amazonCode = metadata.config.plugin(pluginName)
+                        .amazonCodeForCountry(metadata.config, amazonSite.country);
+                // console.log(`${urlP.hostname} is ${amazonSite.domain}? ${amazonSite.domain.test(urlP.hostname)} amazonCode ${amazonCode}`);
+                if (domainMatch(amazonSite.domain, href) /* amazonSite.domain.test(urlP.hostname) */ && amazonCode) {
+                    akasha.linkRelSetAttr($link, 'nofollow', true);
+                    $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
+                    // console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
+                }
+            });
 
             if (metadata.config.plugin(pluginName).doNoSkimlinksForDomain(metadata.config, urlP.hostname)) {
                 akasha.linkRelSetAttr($link, 'noskim', true);

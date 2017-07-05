@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/akashacms/akashacms-affiliates#readme",
   "dependencies": {
-      "js-yaml": "^3.8.4"
+      "js-yaml": "^3.8.4",
+      "domain-match": "*"
   }
 }
