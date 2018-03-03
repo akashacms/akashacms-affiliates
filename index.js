@@ -130,7 +130,10 @@ async function getProductData(metadata, href, productid) {
                     break;
                 }
             }
-        }
+            if (!data) {
+                console.log(`getProductData no data found for productid=${productid} href=${href} in file ${doc.metadata.document.path}`)
+            }
+        } else console.log(`getProductData no data no products productid=${productid} href=${href} in file ${doc ? doc.metadata.document.path : 'NO DOCUMENT FOUND'}`);
     } else console.log(`getProductData no data no href ${productid} in file ${metadata.document.path}`);
     if (!data && "products" in metadata) {
         for (let product in metadata.products) {
@@ -138,6 +141,9 @@ async function getProductData(metadata, href, productid) {
                 data = product;
                 break;
             }
+        }
+        if (!data) {
+            console.log(`getProductData no data found for productid=${productid} href=${href} in file ${metadata.document.path}`)
         }
     } else console.log(`getProductData no data ${productid} in file ${metadata.document.path}`);
     if (!data && productid in metadata.config.pluginData(pluginName).products) {
