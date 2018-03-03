@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2017 David Herron
+ * Copyright 2017, 2018 David Herron
  *
  * This file is part of AkashaCMS-affiliates (http://akashacms.com/).
  *
@@ -103,6 +103,8 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
         return this;
     }
 
+    
+
 
 };
 
@@ -114,6 +116,23 @@ function setAmazonAffiliateTag(href, tag) {
     urlP.query.tag = tag;
     urlP.search = undefined;
     return url.format(urlP);
+}
+
+async function getProductData(metadata, href, productid) {
+    var data;
+    if (!data && href) {
+        let doc = await akasha.readDocument(metadata.config, href);
+        if (products in doc.metadata && productid in doc.metadata.products) {
+            data = doc.metadata.products[productid];
+        }
+    }
+    if (products in metadata && productid in metadata.products) {
+        data = metadata.products[productid];
+    }
+    if (!data && productid in metadata.config.pluginData(pluginName).products) {
+        data = metadata.config.pluginData(pluginName).products[productid];
+    }
+    return data;
 }
 
 module.exports.mahabhuta = new mahabhuta.MahafuncArray(pluginName, {});
@@ -176,21 +195,21 @@ module.exports.mahabhuta.addMahafunc(new AffiliateLinkMunger());
 
 class AffiliateProductContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product"; }
-    process($element, metadata, dirty) {
+    async process($element, metadata, dirty) {
         dirty();
-        var template = $element.attr('template');
-        if (!template) template = "affiliate-product.html.ejs";
-
-        var productid = $element.attr('productid');
-        if (! productid in metadata.config.pluginData(pluginName).products) {
-            throw new Error(`Unknown affiliate product ${productid}`);
+        const template = $element.attr('template') 
+                ? $element.attr('template')
+                : "affiliate-product.html.ejs";
+        const productid = $element.attr('productid');
+        const href = $element.attr('href');
+        if (!productid) {
+            throw new Error(`affiliate-product: No productid found in ${metadata.document.path}`);
         }
-        var data = metadata.config.pluginData(pluginName).products[productid];
+        const data = await getProductData(metadata, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
-        var body = $element.html();
-        data.partialBody = body;
+        data.partialBody = $element.html();
         return akasha.partial(metadata.config, template, data);
     }
 }
@@ -198,34 +217,36 @@ module.exports.mahabhuta.addMahafunc(new AffiliateProductContent());
 
 class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
-    process($element, metadata, dirty) {
+    async process($element, metadata, dirty) {
         dirty();
-        var productid = $element.attr('productid');
-        var type = $element.attr('type');
-        var width = $element.attr('width');
-        var template = $element.attr('template');
+        const productid = $element.attr('productid');
+        const type = $element.attr('type') ? $element.attr('type') : 'card';
+        const width = $element.attr('width');
+        const template = $element.attr('template')
+                ? $element.attr('template')
+                : "affiliate-product-link-card.html.ejs";
+        const href = $element.attr('href');
 
-        if (!productid)
-            return next(new Error(`affiliate-product-link: no productid= provided in ${metadata.document.path}`));
-        if (!type) type = "card";
-
-        var data = metadata.config.pluginData(pluginName).products[productid];
-        if (!data) {
-            throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
+        if (!productid) {
+            throw new Error(`affiliate-product-link: no productid= provided in ${metadata.document.path}`);
         }
-        var href = data.href;
-        if (data.anchorName) href += '#' + data.anchorName;
+
+        const data = await getProductData(metadata, href, productid);
+        if (!data) {
+            throw new Error(`affiliate-product-link: No data found for ${productid} in ${metadata.document.path}`);
+        }
+        var productHref = data.href;
+        if (data.anchorName) productHref += '#' + data.anchorName;
 
         if (type === "card") {
-            if (!template) template = "affiliate-product-link-card.html.ejs";
             return akasha.partial(metadata.config, template, {
-                productid: productid, href: href,
+                productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
                 content: $element.contents(),
                 width: width ? width : "200px"
             });
         } else if (type === "link") {
-            return Promise.resolve(`<a href='${href}'>${data.productname}</a>`);
+            return Promise.resolve(`<a href='${productHref}'>${data.productname}</a>`);
             next();
         }
     }
@@ -236,14 +257,21 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
     get elementName() { throw new Error("Use a subclass"); }
     process($element, metadata, dirty) {
 
-        var asin     = $element.attr('asin');
-        var display  = $element.attr('display');
-        var affcode  = $element.attr('affcode');
-        var target   = $element.attr('target');
-        var template = $element.attr('template');
-        if (!affcode) affcode = metadata.config.pluginData(pluginName).amazonAffiliateCode[this.countryCode];
-        if (!target) target = "_blank";
-        if (!template) template = this.defaultTemplate;
+        const asin     = $element.attr('asin');
+        const display  = $element.attr('display');
+        const affcode  = $element.attr('affcode')
+                ? $element.attr('affcode')
+                : metadata.config.pluginData(pluginName).amazonAffiliateCode[this.countryCode];
+        const target   = $element.attr('target')
+                ? $element.attr('target')
+                : "_blank";
+        const template = $element.attr('template')
+                ? $element.attr('template')
+                : this.defaultTemplate;
+
+        if (!asin) {
+            throw new Error(`${this.elementName()}: No ASIN found in ${metadata.document.path}`);
+        }
 
         if (affcode && template) {
             return akasha.partial(metadata.config, template, {
