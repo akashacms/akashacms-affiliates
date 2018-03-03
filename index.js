@@ -122,21 +122,15 @@ async function getProductData(metadata, href, productid) {
     var data;
     if (!data && href) {
         let doc = await akasha.readDocument(metadata.config, href);
-        // console.log(`getProductData productid=${productid} href=${href} in file ${metadata.document.path} ${util.inspect(doc.metadata)}`);
         if (doc && "products" in doc.metadata) {
             for (let product of doc.metadata.products) {
                 if (product.code === productid) {
                     data = product;
                     break;
-                } else {
-                    console.log(`getProductData product.code ${product.code} !== ${productid} for productid=${productid} href=${href} in file ${doc.metadata.document.path}`);
                 }
             }
-            if (!data) {
-                console.log(`getProductData no data found for productid=${productid} href=${href} in file ${doc.metadata.document.path}`);
-            }
-        } else console.log(`getProductData no data no products productid=${productid} href=${href} in file ${doc ? doc.metadata.document.path : 'NO DOCUMENT FOUND'}`);
-    } else console.log(`getProductData no data no href ${productid} in file ${metadata.document.path}`);
+        }
+    }
     if (!data && "products" in metadata) {
         for (let product of metadata.products) {
             if (product.code === productid) {
@@ -144,13 +138,10 @@ async function getProductData(metadata, href, productid) {
                 break;
             }
         }
-        if (!data) {
-            console.log(`getProductData no data found for productid=${productid} href=${href} in file ${metadata.document.path}`)
-        }
-    } else console.log(`getProductData no data ${productid} in file ${metadata.document.path}`);
+    }
     if (!data && productid in metadata.config.pluginData(pluginName).products) {
         data = metadata.config.pluginData(pluginName).products[productid];
-    } else console.log(`getProductData no GLOBAL data ${productid} in file ${metadata.document.path}`);
+    }
     return data;
 }
 
@@ -252,7 +243,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
 
         const data = await getProductData(metadata, href, productid);
         if (!data) {
-            throw new Error(`affiliate-product-link: No data found for ${productid} in ${metadata.document.path}`);
+            throw new Error(`affiliate-product-link: No data found for ${productid} ${href} in ${metadata.document.path}`);
         }
         var productHref = data.href;
         if (data.anchorName) productHref += '#' + data.anchorName;
