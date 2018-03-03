@@ -122,13 +122,23 @@ async function getProductData(metadata, href, productid) {
     var data;
     if (!data && href) {
         let doc = await akasha.readDocument(metadata.config, href);
-        console.log(`getProductData productid=${productid} href=${href} in file ${metadata.document.path} ${util.inspect(doc.metadata)}`);
-        if (doc && "products" in doc.metadata && productid in doc.metadata.products) {
-            data = doc.metadata.products[productid];
+        // console.log(`getProductData productid=${productid} href=${href} in file ${metadata.document.path} ${util.inspect(doc.metadata)}`);
+        if (doc && "products" in doc.metadata) {
+            for (let product in doc.metadata.products) {
+                if (product.code === productid) {
+                    data = product;
+                    break;
+                }
+            }
         }
     } else console.log(`getProductData no data no href ${productid} in file ${metadata.document.path}`);
-    if (!data && "products" in metadata && productid in metadata.products) {
-        data = metadata.products[productid];
+    if (!data && "products" in metadata) {
+        for (let product in metadata.products) {
+            if (product.code === productid) {
+                data = product;
+                break;
+            }
+        }
     } else console.log(`getProductData no data ${productid} in file ${metadata.document.path}`);
     if (!data && productid in metadata.config.pluginData(pluginName).products) {
         data = metadata.config.pluginData(pluginName).products[productid];
