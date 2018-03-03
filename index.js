@@ -122,11 +122,11 @@ async function getProductData(metadata, href, productid) {
     var data;
     if (!data && href) {
         let doc = await akasha.readDocument(metadata.config, href);
-        if (products in doc.metadata && productid in doc.metadata.products) {
+        if ("products" in doc.metadata && productid in doc.metadata.products) {
             data = doc.metadata.products[productid];
         }
     }
-    if (products in metadata && productid in metadata.products) {
+    if ("products" in metadata && productid in metadata.products) {
         data = metadata.products[productid];
     }
     if (!data && productid in metadata.config.pluginData(pluginName).products) {
