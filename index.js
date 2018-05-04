@@ -119,28 +119,29 @@ function setAmazonAffiliateTag(href, tag) {
 }
 
 async function getProductData(metadata, href, productid) {
-    var data;
-    if (!data && href) {
+    let data;
+    let products;
+    if (href) {
         let doc = await akasha.readDocument(metadata.config, href);
         if (doc && "products" in doc.metadata) {
-            for (let product of doc.metadata.products) {
-                if (product.code === productid) {
-                    data = product;
-                    break;
-                }
-            }
+            products = doc.metadata.products;
         }
     }
-    if (!data && "products" in metadata) {
-        for (let product of metadata.products) {
+    if (!products && "products" in metadata) {
+        products = metadata.products;
+    }
+    if (!products) {
+        products = metadata.config.pluginData(pluginName).products;
+    }
+    if (productid) {
+        for (let product of products) {
             if (product.code === productid) {
                 data = product;
                 break;
             }
         }
-    }
-    if (!data && productid in metadata.config.pluginData(pluginName).products) {
-        data = metadata.config.pluginData(pluginName).products[productid];
+    } else {
+        data = products[Math.floor(Math.random() * products.length)];
     }
     return data;
 }
@@ -212,9 +213,6 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.ejs";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        if (!productid) {
-            throw new Error(`affiliate-product: No productid found in ${metadata.document.path}`);
-        }
         const data = await getProductData(metadata, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
@@ -229,22 +227,14 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
         dirty();
-        var productid = $element.attr('productid');
-        var type = $element.attr('type');
-        var width = $element.attr('width');
-        var template = $element.attr('template');
-        if (!type) type = "card";
+        const productid = $element.attr('productid');
+        const type = $element.attr('type') ? $element.attr('type') : 'card';
+        const width = $element.attr('width');
+        const template = $element.attr('template') 
+                ? $element.attr('template') 
+                : "affiliate-product-link-card.html.ejs"; 
 
         const data = await getProductData(metadata, href, productid);
-        let data;
-        let products = metadata.config.pluginData(pluginName).products;
-
-        if (productid) {
-            data = products[productid];
-        } else {
-            data = products[Math.floor(Math.random() * products.length)];
-        }
-
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
@@ -259,9 +249,9 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 width: width ? width : "200px"
             });
         } else if (type === "link") {
-            return Promise.resolve(`<a href='${href}'>${data.productname}</a>`);
+            return `<a href='${href}'>${data.productname}</a>`;
         } else if (type === "teaser") {
-            return Promise.resolve(`<a href='${href}'>${data.productname}</a>: ${data.teaser}`);
+            return `<a href='${href}'>${data.productname}</a>: ${data.teaser ? data.teaser : ''}`;
         }
     }
 }
