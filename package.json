@@ -1,6 +1,6 @@
 {
   "name": "akashacms-affiliates",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "AkashaCMS plugin to simplify generating affiliate links",
   "main": "index.js",
   "scripts": {
