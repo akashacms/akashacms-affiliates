@@ -204,14 +204,19 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         var type = $element.attr('type');
         var width = $element.attr('width');
         var template = $element.attr('template');
-
-        if (!productid)
-            return next(new Error(`affiliate-product-link: no productid= provided in ${metadata.document.path}`));
         if (!type) type = "card";
 
-        var data = metadata.config.pluginData(pluginName).products[productid];
+        let data;
+        let products = metadata.config.pluginData(pluginName).products;
+
+        if (productid) {
+            data = products[productid];
+        } else {
+            data = products[Math.floor(Math.random() * products.length)];
+        }
+
         if (!data) {
-            throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
+            throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
         var href = data.href;
         if (data.anchorName) href += '#' + data.anchorName;
@@ -226,7 +231,8 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             });
         } else if (type === "link") {
             return Promise.resolve(`<a href='${href}'>${data.productname}</a>`);
-            next();
+        } else if (type === "teaser") {
+            return Promise.resolve(`<a href='${href}'>${data.productname}</a>: ${data.teaser}`);
         }
     }
 }
