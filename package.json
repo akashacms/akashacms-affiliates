@@ -1,6 +1,6 @@
 {
   "name": "akashacms-affiliates",
-  "version": "0.1.2",
+  "version": "0.2.1",
   "description": "AkashaCMS plugin to simplify generating affiliate links",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/akashacms/akashacms-affiliates#readme",
   "dependencies": {
-      "js-yaml": "^3.8.4",
+      "js-yaml": "^3.10.x",
       "domain-match": "*"
   }
 }
