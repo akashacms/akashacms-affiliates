@@ -207,7 +207,6 @@ module.exports.mahabhuta.addMahafunc(new AffiliateLinkMunger());
 class AffiliateProductContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product"; }
     async process($element, metadata, dirty) {
-        dirty();
         const template = $element.attr('template') 
                 ? $element.attr('template')
                 : "affiliate-product.html.ejs";
@@ -218,6 +217,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
         data.partialBody = $element.html();
+        dirty();
         return akasha.partial(metadata.config, template, data);
     }
 }
@@ -226,7 +226,6 @@ module.exports.mahabhuta.addMahafunc(new AffiliateProductContent());
 class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
-        dirty();
         const productid = $element.attr('productid');
         const type = $element.attr('type') ? $element.attr('type') : 'card';
         const width = $element.attr('width');
@@ -243,6 +242,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         if (data.anchorName) productHref += '#' + data.anchorName;
 
         if (type === "card") {
+            dirty();
             return akasha.partial(metadata.config, template, {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
