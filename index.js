@@ -227,15 +227,25 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
         const productid = $element.attr('productid');
-        const type = $element.attr('type') ? $element.attr('type') : 'card';
-        const float = $element.attr('float');
-        const width = $element.attr('width');
-        const height = $element.attr('height');
+        const type = $element.attr('type') 
+                ? $element.attr('type') 
+                : 'card';
+        const float = $element.attr('float')
+                ? $element.attr('float')
+                : "left";
+        const width = $element.attr('width')
+                ? $element.attr('width')
+                : "200px";
+        const height = $element.attr('height')
+                ? $element.attr('height')
+                : "100%";
         const template = $element.attr('template') 
                 ? $element.attr('template') 
                 : "affiliate-product-link-card.html.ejs"; 
         const href = $element.attr('href');
-        const docaption = $element.attr('docaption');
+        const docaption = $element.attr('docaption')
+                ? $element.attr('docaption')
+                : "true";
 
         const data = await getProductData(metadata, href, productid);
         if (!data) {
@@ -243,11 +253,6 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         }
         var productHref = data.href;
         if (data.anchorName) productHref += '#' + data.anchorName;
-
-        if (!float) float = "left";
-        if (!docaption) docaption = "true";
-        if (!width) width = "200px";
-        if (!height) height = "100%";
 
         if (type === "card") {
             dirty();
