@@ -1,11 +1,13 @@
-<span class="link-to-external-card" style="float: left; width: <%= width %>; padding: 2px; margin: 2px;">
+<span class="link-to-external-card" style="float: <%= float %>; width: <%= width %>; max-height: <%= height %>; padding: 2px; margin: 2px;">
     <figure>
         <a href="<%- href %>">
             <img src="<%- thumburl %>" alt="<%= title %>" title="<%= title %>" style="width: 100%;">
         </a>
+        <% if (docaption === "true") { %>
         <figcaption style="text-align: center;">
             <a href="<%- href %>"><strong><%= title %></strong></a><%
                 if (content) { %>: <%- content %><% } %>
         </figcaption>
+        <% } %>
     </figure>
 </span>

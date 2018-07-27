@@ -217,7 +217,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
         data.partialBody = $element.html();
-        dirty();
+        // dirty();
         return akasha.partial(metadata.config, template, data);
     }
 }
@@ -228,11 +228,14 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     async process($element, metadata, dirty) {
         const productid = $element.attr('productid');
         const type = $element.attr('type') ? $element.attr('type') : 'card';
+        const float = $element.attr('float');
         const width = $element.attr('width');
+        const height = $element.attr('height');
         const template = $element.attr('template') 
                 ? $element.attr('template') 
                 : "affiliate-product-link-card.html.ejs"; 
-        const href = $element.attr('href'); 
+        const href = $element.attr('href');
+        const docaption = $element.attr('docaption');
 
         const data = await getProductData(metadata, href, productid);
         if (!data) {
@@ -241,13 +244,19 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         var productHref = data.href;
         if (data.anchorName) productHref += '#' + data.anchorName;
 
+        if (!float) float = "left";
+        if (!docaption) docaption = "true";
+        if (!width) width = "200px";
+        if (!height) height = "100%";
+
         if (type === "card") {
             dirty();
             return akasha.partial(metadata.config, template, {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
                 content: $element.contents(),
-                width: width ? width : "200px"
+                float: float, docaption: docaption,
+                width: width, height: height
             });
         } else if (type === "link") {
             return `<a href='${href}'>${data.productname}</a>`;
