@@ -242,7 +242,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         const template = $element.attr('template') 
                 ? $element.attr('template') 
                 : "affiliate-product-link-card.html.ejs"; 
-        const href = $element.attr('href');
+        let href = $element.attr('href');
         const docaption = $element.attr('docaption')
                 ? $element.attr('docaption')
                 : "true";
