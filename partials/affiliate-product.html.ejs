@@ -11,7 +11,7 @@
     </a>
     <% } %>
     <div class="productdescription">
-        <h3 class="infobox-title">
+        <h2 class="infobox-title">
             <% if (typeof productbuyurl !== 'undefined') { %>
                 <a class="affproductname" href="<%= productbuyurl %>" <%
                     if (typeof productrel !== 'undefined') { %> rel="<%= productrel %>" <% } %>>
@@ -19,7 +19,7 @@
             <% } else { %>
                 <%= productname %>
             <% } %>
-        </h3>
+        </h2>
         <% if (typeof productdescription !== 'undefined' && productdescription) { %><%- productdescription %><% } %>
         <% if (partialBody) { %><%- partialBody %><% } %>
     </div>
