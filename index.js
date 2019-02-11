@@ -22,14 +22,14 @@
 const fs        = require('fs');
 const url       = require('url');
 const path      = require('path');
-const util      = require('util');
+// const util      = require('util');
 const akasha    = require('akasharender');
 const mahabhuta = akasha.mahabhuta;
 const yaml      = require('js-yaml');
 const domainMatch = require('domain-match');
 
-const log   = require('debug')('akasha:affiliates-plugin');
-const error = require('debug')('akasha:error-affiliates-plugin');
+// const log   = require('debug')('akasha:affiliates-plugin');
+// const error = require('debug')('akasha:error-affiliates-plugin');
 
 const pluginName = "akashacms-affiliates";
 
@@ -246,12 +246,16 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         const docaption = $element.attr('docaption')
                 ? $element.attr('docaption')
                 : "true";
+        
+        if (!href) {
+            href = metadata.document.path;
+        }
 
         const data = await getProductData(metadata, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
-        var productHref = data.href;
+        var productHref = href;
         if (data.anchorName) productHref += '#' + data.anchorName;
 
         if (type === "card") {
@@ -264,9 +268,9 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 width: width, height: height
             });
         } else if (type === "link") {
-            return `<a href='${href}'>${data.productname}</a>`;
+            return `<a href='${productHref}'>${data.productname}</a>`;
         } else if (type === "teaser") {
-            return `<a href='${href}'>${data.productname}</a>: ${data.teaser ? data.teaser : ''}`;
+            return `<a href='${productHref}'>${data.productname}</a>: ${data.teaser ? data.teaser : ''}`;
         }
     }
 }
