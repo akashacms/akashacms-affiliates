@@ -248,7 +248,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 : "true";
         
         if (!href) {
-            href = metadata.document.path;
+            href = metadata.document.renderTo;
         }
 
         const data = await getProductData(metadata, href, productid);
