@@ -239,6 +239,9 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         const height = $element.attr('height')
                 ? $element.attr('height')
                 : "100%";
+        const style = $element.attr('style')
+                ? $element.attr('style')
+                : "width: 100%;";
         const template = $element.attr('template') 
                 ? $element.attr('template') 
                 : "affiliate-product-link-card.html.ejs"; 
@@ -265,7 +268,8 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 title: data.productname, thumburl: data.productimgurl,
                 content: $element.contents(),
                 float: float, docaption: docaption,
-                width: width, height: height
+                width: width, height: height,
+                style: style
             });
         } else if (type === "link") {
             return `<a href='${productHref}'>${data.productname}</a>`;

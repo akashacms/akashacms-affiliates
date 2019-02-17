@@ -1,7 +1,7 @@
 <span class="link-to-external-card" style="float: <%= float %>; max-width: <%= width %>; max-height: <%= height %>; padding: 2px; margin: 2px;">
     <figure>
         <a href="<%- href %>">
-            <img src="<%- thumburl %>" alt="<%= title %>" title="<%= title %>" style="width: 100%;">
+            <img src="<%- thumburl %>" alt="<%= title %>" title="<%= title %>" style="<%= style %>">
         </a>
         <% if (docaption === "true") { %>
         <figcaption style="text-align: center;">
