@@ -146,6 +146,14 @@ async function getProductData(metadata, href, productid) {
     return data;
 }
 
+async function getProductList(metadata, href, productids) {
+    let ret = [];
+    for (let productid in productids) {
+        ret.push(await getProductData(metadata, href, productid));
+    }
+    return ret;
+}
+
 module.exports.mahabhuta = new mahabhuta.MahafuncArray(pluginName, {});
 
 /**
@@ -223,6 +231,36 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
 }
 module.exports.mahabhuta.addMahafunc(new AffiliateProductContent());
 
+class AffiliateProductTableContent extends mahabhuta.CustomElement {
+    get elementName() { return "affiliate-product-table"; }
+    async process($element, metadata, dirty) {
+        const template = $element.attr('template') 
+                ? $element.attr('template')
+                : "affiliate-product-tabbed-table.html.ejs";
+        const id = $element.attr('id');
+        if (!id || id === '') {
+            throw new Error(`affiliate-product-table 'id' is required in ${metadata.document.path}`);
+        }
+        const productids = $element.data('products');
+        if (!productids || productids === '' || !Array.isArray(productids)) {
+            throw new Error(`affiliate-product-table 'data-products' is required in ${metadata.document.path}`);
+        }
+        const href = $element.attr('href');
+        const data = {
+            id,
+            usefade: "fade"
+        };
+        data.products = await getProductList(metadata, href, productids);
+        if (!data.products || data.products.length <= 0) {
+            throw new Error(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
+        }
+        data.products[0].isactive = "show active";
+        // dirty();
+        return akasha.partial(metadata.config, template, data);
+    }
+}
+module.exports.mahabhuta.addMahafunc(new AffiliateProductTableContent());
+
 class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
@@ -260,12 +298,14 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         }
         var productHref = href;
         if (data.anchorName) productHref += '#' + data.anchorName;
+        const productdescription = data.productdescription;
 
         if (type === "card") {
             dirty();
             return akasha.partial(metadata.config, template, {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
+                productdescription,
                 content: $element.contents(),
                 float: float, docaption: docaption,
                 width: width, height: height,

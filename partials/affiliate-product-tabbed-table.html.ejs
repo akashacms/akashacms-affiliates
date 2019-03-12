@@ -1,0 +1,104 @@
+<div class="row">
+  <div class="col-3">
+    <div class="nav flex-column nav-pills" id="<%= id %>-tab" 
+                role="tablist" aria-orientation="vertical">
+    <% for (product in products) { %>
+        <a class="nav-link <%= product.isactive %>" id="<%= product.id %>-tab" href="#<%= product.id %>-pills"
+                role="tab" data-toggle="tab" aria-controls="<%= product.id %>-pills"
+                aria-selected="true">
+
+            <img src="<%- product.thumburl %>" alt="<%= product.title %>" title="<%= product.title %>" <% 
+                    if (typeof product.style !== 'undefined') {
+                        %> style="<%= product.style %>" <% 
+                    } %> >
+        </a>
+    <% } %>
+    </div>
+  </div>
+  <div class="col-9">
+    <div class="tab-content" id="<%= id %>-tabContent">
+    <% for (product in products) { %>
+
+        <div class="tab-pane <%= usefade %> <%= product.isactive %>" 
+            id="<%= product.id %>-pills"
+            role="tabpanel" data-toggle="pill" 
+            aria-labelledby="<%= product.id %>-tab">
+        <div class="affiliateproduct" style="clear: both;"<%
+            if (typeof product.anchorName !== 'undefined') { %> id="<%= product.anchorName %>"<% }
+        %>>
+            <% if (typeof product.productbuyurl !== 'undefined') { %>
+                <a href="<%= product.productbuyurl %>" rel="nofollow">
+            <% } %>
+            <% if (typeof product.productimgurl !== 'undefined') { %>
+                <img class="affiliateimage" src="<%= product.productimgurl %>" 
+                    width="150px" align="right"/>
+            <% } %>
+            <% if (typeof product.productbuyurl !== 'undefined') { %>
+                </a>
+            <% } %>
+            <div class="productdescription">
+                <h2 class="infobox-title">
+                    <% if (typeof product.productbuyurl !== 'undefined') { %>
+                        <a class="affproductname" href="<%= product.productbuyurl %>" <%
+                            if (typeof product.productrel !== 'undefined') { %> rel="<%= product.productrel %>" <% } %>>
+                        <%= product.productname %></a>
+                    <% } else { %>
+                        <%= product.productname %>
+                    <% } %>
+                </h2>
+                <% if (typeof product.productdescription !== 'undefined' && product.productdescription) { %><%- product.productdescription %><% } %>
+                <% if (product.partialBody) { %><%- product.partialBody %><% } %>
+            </div>
+
+            <%
+
+            if (typeof product.productattributes !== 'undefined') {
+                %><ul><%
+                    for (var product.productattr of product.productattributes) {
+                        %><li><%= product.productattr %></li><%
+                    }
+                %></ul><%
+            }
+
+            if (typeof product.productamzn !== 'undefined' && product.productamzn) {
+                for (var amzn of product.productamzn) {
+                    if (typeof amzn !== 'undefined' && typeof amzn.asin !== 'undefined') {
+                        if (amzn.countryCode === "ca") {
+                            %><amazon-ca-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "co-jp") {
+                            %><amazon-co-jp-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "co-uk") {
+                            %><amazon-co-uk-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "com") {
+                            %><amazon-com-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "de") {
+                            %><amazon-de-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "es") {
+                            %><amazon-es-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "fr") {
+                            %><amazon-fr-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        } else if (amzn.countryCode === "it") {
+                            %><amazon-it-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                        }
+                    }
+                }
+            }
+
+            if (typeof product.productlinks !== 'undefined') {
+                %><span><%
+                    for (var link of product.productlinks) {
+                        %>[<a href="<%= link.url %>" rel="<%= link.rel %>"><%= link.text %></a>] <%
+                    }
+                %></span><%
+            }
+
+            %>
+
+            <div class="affiliate-product-sponsored">Sponsored</div>
+
+        </div>
+        </div>
+    <% } %>
+    </div>
+  </div>
+</div>
