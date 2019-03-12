@@ -1,72 +1,27 @@
-<div>
-
-<!--
-    <div class="nav nav-pills btn-group"  id="<%= id %>-tab" role="group">
-        <button id="<%= id %>-drop" type="button" 
-                class="btn btn-secondary dropdown-toggle" 
-                data-toggle="dropdown" 
-                aria-haspopup="true" aria-expanded="false">
-        Dropdown
-        </button>
-        <div class="dropdown-menu" aria-labelledby="<%= id %>-drop">
-            <% for (product of products) { %>
-                <button type="button"
-                    class="dropdown-item nav-item nav-link <%= product.isactive %>"
-                    id="<%= product.anchorName %>-tab" 
-                    href="#<%= product.anchorName %>-pills"
-                    role="tab" data-toggle="pill" 
-                    aria-controls="<%= product.anchorName %>-pills"
-                    aria-selected="true">
-                    <img src="<%- product.productimgurl %>" 
-                            alt="<%= product.productname %>"
-                            title="<%= product.productname %>"
-                            style="<%= thumbImageStyle %>" >
-                </button>
-            <% } %>
-        </div>
-    </div>
--->
-
-    <div class="nav nav-pills nav-fill btn-group" id="<%= id %>-tab" role="tablist">
+<div class="row">
+  <div class="col-3">
+    <div class="nav flex-column nav-pills" id="<%= id %>-tab" 
+                role="tablist" aria-orientation="vertical">
     <% for (product of products) { %>
-        <button type="button"
-            class="btn inline-block nav-item nav-link <%= product.isactive %>"
-            style="display: inline"
-            id="<%= product.anchorName %>-tab" 
-            href="#<%= product.anchorName %>-pills"
-            role="tab" data-toggle="pill" 
-            aria-controls="<%= product.anchorName %>-pills"
-            aria-selected="true">
+        <a class="nav-link <%= product.isactive %>" id="<%= product.anchorName %>-tab" href="#<%= product.anchorName %>-pills"
+                role="tab" data-toggle="tab" 
+                aria-controls="<%= product.anchorName %>-pills"
+                aria-selected="true">
+
             <img src="<%- product.productimgurl %>" 
-                    alt="<%= product.productname %>"
-                    title="<%= product.productname %>"
-                    style="<%= thumbImageStyle %>" >
-        </button>
+                alt="<%= product.productname %>"
+                title="<%= product.productname %>" <% 
+                    if (typeof product.style !== 'undefined') {
+                        %> style="<%= product.style %>" <% 
+                    } %> >
+        </a>
     <% } %>
     </div>
-
-<!-- 
-    <ul class="nav nav-pills mb-3" id="<%= id %>-tab" role="tablist">
-    <% for (product of products) { %>
-        <li class="nav-item">
-            <a class="nav-link <%= product.isactive %>" 
-                    id="<%= product.anchorName %>-tab" 
-                    href="#<%= product.anchorName %>-pills"
-                    role="tab" data-toggle="pill" 
-                    aria-controls="<%= product.anchorName %>-pills"
-                    aria-selected="true">
-
-                <img src="<%- product.productimgurl %>" 
-                    alt="<%= product.productname %>"
-                    title="<%= product.productname %>"
-                    style="<%= thumbImageStyle %>" >
-            </a>
-        </li>
-    <% } %>
-    </ul>
--->
+  </div>
+  <div class="col-9">
     <div class="tab-content" id="<%= id %>-tabContent">
     <% for (product of products) { %>
+
         <div class="tab-pane <%= usefade %> <%= product.isactive %>" 
             id="<%= product.anchorName %>-pills"
             role="tabpanel" data-toggle="pill" 
@@ -148,4 +103,5 @@
         </div>
     <% } %>
     </div>
+  </div>
 </div>

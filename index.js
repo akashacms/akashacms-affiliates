@@ -22,7 +22,7 @@
 const fs        = require('fs');
 const url       = require('url');
 const path      = require('path');
-// const util      = require('util');
+const util      = require('util');
 const akasha    = require('akasharender');
 const mahabhuta = akasha.mahabhuta;
 const yaml      = require('js-yaml');
@@ -143,6 +143,9 @@ async function getProductData(metadata, href, productid) {
     } else {
         data = products[Math.floor(Math.random() * products.length)];
     }
+    if (!data) {
+        throw new Error(`getProductData failed to find data in ${href} for ${productid}`);
+    }
     return data;
 }
 
@@ -231,6 +234,48 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
 }
 module.exports.mahabhuta.addMahafunc(new AffiliateProductContent());
 
+class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
+    get elementName() { return "affiliate-product-accordion"; }
+    async process($element, metadata, dirty) {
+        const template = $element.attr('template') 
+                ? $element.attr('template')
+                : "affiliate-product-accordion.html.ejs";
+        const id = $element.attr('id');
+        if (!id || id === '') {
+            throw new Error(`affiliate-product-accordion 'id' is required in ${metadata.document.path}`);
+        }
+        const productids = $element.data('products');
+        if (!productids || productids === '' || !Array.isArray(productids)) {
+            throw new Error(`affiliate-product-accordion 'data-products' is required in ${metadata.document.path}`);
+        }
+        const thumbImageStyle = $element.attr('thumb-image-style');
+        if (!thumbImageStyle || thumbImageStyle === '') {
+            throw new Error(`affiliate-product-accordion 'thumb-image-style' is required in ${metadata.document.path}`);
+        }
+        const href = $element.attr('href');
+        const data = {
+            id,
+            usefade: "fade",
+            thumbImageStyle,
+            producthref: href
+        };
+        /* data.products = productids.map((productid) => {
+            return {
+                id: productid, href
+            };
+        }); */
+        data.products = await getProductList(metadata, href, productids);
+        if (!data.products || data.products.length <= 0) {
+            throw new Error(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
+        }
+        data.products[0].isactive = "show active";
+        // console.log(`affiliate-product-accordion ${id} ${util.inspect(data)}`);
+        dirty();
+        return akasha.partial(metadata.config, template, data);
+    }
+}
+module.exports.mahabhuta.addMahafunc(new AffiliateProductAccordionContent());
+
 class AffiliateProductTableContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-table"; }
     async process($element, metadata, dirty) {
@@ -245,16 +290,22 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
         if (!productids || productids === '' || !Array.isArray(productids)) {
             throw new Error(`affiliate-product-table 'data-products' is required in ${metadata.document.path}`);
         }
+        const thumbImageStyle = $element.attr('thumb-image-style');
+        if (!thumbImageStyle || thumbImageStyle === '') {
+            throw new Error(`affiliate-product-table 'thumb-image-style' is required in ${metadata.document.path}`);
+        }
         const href = $element.attr('href');
         const data = {
             id,
-            usefade: "fade"
+            usefade: "fade",
+            thumbImageStyle
         };
         data.products = await getProductList(metadata, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
         }
         data.products[0].isactive = "show active";
+        // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
         // dirty();
         return akasha.partial(metadata.config, template, data);
     }

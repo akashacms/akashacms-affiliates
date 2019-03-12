@@ -1,0 +1,25 @@
+<collapse-container id="<%= id %>-accordion">
+<%
+let isfirst = true;
+for (product of products) { %>
+    <collapse-item parent-id="<%= id %>-accordion" 
+            id="<%= product.anchorName %>-collapse"
+            title="<%= product.productname %>"
+            <% 
+            if (typeof product.productimgurl !== 'undefined') {
+            %> thumb-url="<%= product.productimgurl %>" <%
+            }
+            if (!isfirst) { %> collapsed="true" <% } 
+            %> >
+
+        <affiliate-product productid="<%= product.code %>" 
+            <% if (typeof producthref !== 'undefined') {
+                %> href="<%= producthref %>" <%
+            } %> ></affiliate-product>
+       
+    </collapse-item>
+
+<%
+    isfirst = false;
+} %>
+</collapse-container>
