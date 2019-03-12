@@ -2,7 +2,7 @@
   <div class="col-3">
     <div class="nav flex-column nav-pills" id="<%= id %>-tab" 
                 role="tablist" aria-orientation="vertical">
-    <% for (product in products) { %>
+    <% for (product of products) { %>
         <a class="nav-link <%= product.isactive %>" id="<%= product.id %>-tab" href="#<%= product.id %>-pills"
                 role="tab" data-toggle="tab" aria-controls="<%= product.id %>-pills"
                 aria-selected="true">
@@ -17,7 +17,7 @@
   </div>
   <div class="col-9">
     <div class="tab-content" id="<%= id %>-tabContent">
-    <% for (product in products) { %>
+    <% for (product of products) { %>
 
         <div class="tab-pane <%= usefade %> <%= product.isactive %>" 
             id="<%= product.id %>-pills"
@@ -54,8 +54,8 @@
 
             if (typeof product.productattributes !== 'undefined') {
                 %><ul><%
-                    for (var product.productattr of product.productattributes) {
-                        %><li><%= product.productattr %></li><%
+                    for (var productattr of product.productattributes) {
+                        %><li><%= productattr %></li><%
                     }
                 %></ul><%
             }

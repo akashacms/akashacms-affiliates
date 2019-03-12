@@ -148,7 +148,7 @@ async function getProductData(metadata, href, productid) {
 
 async function getProductList(metadata, href, productids) {
     let ret = [];
-    for (let productid in productids) {
+    for (let productid of productids) {
         ret.push(await getProductData(metadata, href, productid));
     }
     return ret;
