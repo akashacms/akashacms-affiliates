@@ -12,7 +12,10 @@
                 title="<%= productname %>"
                 button-text="View larger image"
                 additional-classes="modal-dialog-centered btn-small">
-            <img src="<%= productimgurl %>" alt="<%= productname %>"/>
+                <a class="affproductname" href="<%= productbuyurl %>" <%
+                    if (typeof productrel !== 'undefined') { %> rel="<%= productrel %>" <% } %>>
+                <img src="<%= productimgurl %>" alt="<%= productname %>"/>
+                </a>
             </button-launched-modal>
         </card-block>
     <% } %>
