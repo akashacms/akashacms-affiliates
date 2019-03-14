@@ -2,38 +2,19 @@
         if (typeof anchorName !== 'undefined') { %> id="<%= anchorName %>"<% }
     %>>
     <% if (typeof productimgurl !== 'undefined') { %>
-    <img class="affiliateimage" src="<%= productimgurl %>" 
-            width="150px" align="right"
-            onmouseover='$("#<%= anchorName %>-modal").modal("show")'/>
-
-    <div id="<%= anchorName %>-modal" class="modal" tabindex="-1" role="dialog"
-            aria-labelledby="<%= anchorName %>-modal-title"
-            aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 id="<%= anchorName %>-modal-title" 
-                        class="modal-title"><%= productname %></h5>
-                <button type="button" class="close" 
-                        data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <a href="<%= productbuyurl %>" <%
-                    if (typeof productrel !== 'undefined') {
-                            %> rel="<%= productrel %>" <% 
-                    } %> >
-                <img src="<%= productimgurl %>" width="100%"/>
-                </a>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"     
-                        data-dismiss="modal">Close</button>
-            </div>
-            </div>
-        </div>
-    </div>
+        <card-block additional-classes="float-right"
+            style="width: 150px;"
+            card-image-top="<%= productimgurl %>"
+            card-image-alt="<%= productname %>"
+            card-image-style="width: 100%;">
+        
+            <button-launched-modal id="<%= anchorName %>-modal-button"
+                title="<%= productname %>"
+                button-text="View larger image"
+                additional-classes="modal-dialog-centered btn-small">
+            <img src="<%= productimgurl %>" alt="<%= productname %>"/>
+            </button-launched-modal>
+        </card-block>
     <% } %>
     <div class="productdescription">
         <h2 class="infobox-title">
