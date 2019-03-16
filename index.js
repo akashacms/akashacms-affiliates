@@ -40,6 +40,10 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
 
     configure(config) {
         config.addPartialsDir(path.join(__dirname, 'partials'));
+        config.addAssetsDir({
+            src: path.join(__dirname, 'buy-images'),
+            dest: 'vendor/@akashacms/plugin-affiliates'
+        });
         config.addMahabhuta(module.exports.mahabhuta);
         config.pluginData(pluginName).products = [];
         config.pluginData(pluginName).amazonAffiliateCode = [];
