@@ -5,18 +5,33 @@
         <card-block additional-classes="float-right"
             style="width: 150px;"
             card-image-top="<%= productimgurl %>"
-            card-image-alt="<%= productname %>"
+            card-image-alt="Buy <%= productname %>"
             card-image-style="width: 100%;">
-        
-            <button-launched-modal id="<%= anchorName %>-modal-button"
-                title="<%= productname %>"
-                button-text="View larger image"
-                additional-classes="modal-dialog-centered btn-small">
-                <a class="affproductname" href="<%= productbuyurl %>" <%
-                    if (typeof productrel !== 'undefined') { %> rel="<%= productrel %>" <% } %>>
-                <img src="<%= productimgurl %>" alt="<%= productname %>"/>
-                </a>
-            </button-launched-modal>
+            <% if (typeof gallery !== 'undefined') { %>
+                <button-launched-modal id="<%= anchorName %>-modal-button"
+                    title="<%= productname %>"
+                    button-text="View larger image"
+                    additional-classes="modal-dialog-centered btn-small">
+                    <carousel-container id="<% anchorName %>-modal-carousel">
+                        <carousel-item href="<%= productimgurl %>" isactive="true"/>
+                        <%
+                        for (let item of gallery) {
+                            %><carousel-item href="<%= item.url %>"/><%
+                        }
+                        %>
+                    </carousel-container>
+                </button-launched-modal>
+            <% } else { %>
+                <button-launched-modal id="<%= anchorName %>-modal-button"
+                    title="<%= productname %>"
+                    button-text="View larger image"
+                    additional-classes="modal-dialog-centered btn-small">
+                    <a class="affproductname" href="<%= productbuyurl %>" <%
+                        if (typeof productrel !== 'undefined') { %> rel="<%= productrel %>" <% } %>>
+                    <img src="<%= productimgurl %>" alt="Buy <%= productname %>"/>
+                    </a>
+                </button-launched-modal>
+            <% } %>
         </card-block>
     <% } %>
     <div class="productdescription">
@@ -43,12 +58,24 @@
         %></ul><%
     }
 
+    %>
+    <card-block id="<%= code %>-buy-block" header="Buy <%= productname %>">
+    <%
+
     if (typeof productamzn !== 'undefined' && productamzn) {
         for (var amzn of productamzn) {
             if (typeof amzn !== 'undefined' && typeof amzn.asin !== 'undefined') {
-                if (amzn.countryCode === "ca") {
+                /* In testing, Canada buy buttons don't seem to work.  The user
+                 * ends up on amazon.ca with the correct product information but
+                 * their shopping card doesn't fill and the site says the product
+                 * is unavailable.
+                 * if (amzn.countryCode === "ca") {
                     %><amazon-ca-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
-                } else if (amzn.countryCode === "co-jp") {
+                } else
+                 * For the following the only country code which is tested is
+                 * "com" meaning USA.
+                 */ 
+                if (amzn.countryCode === "co-jp") {
                     %><amazon-co-jp-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
                 } else if (amzn.countryCode === "co-uk") {
                     %><amazon-co-uk-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
@@ -68,14 +95,22 @@
     }
 
     if (typeof productlinks !== 'undefined') {
-        %><span><%
-            for (var link of productlinks) {
-                %>[<a href="<%= link.url %>" rel="<%= link.rel %>"><%= link.text %></a>] <%
+        %> <ul class="list-group list-group-flush">
+        <% for (var link of productlinks) {
+                %>
+                <li class="list-group-item">
+                <a href="<%= link.url %>" rel="<%= link.rel %>" <% 
+                if (typeof link.tooltip !== 'undefined' && link.tooltip !== '') {
+                    %> data-toggle="tooltip" title="<%= link.tooltip %>" <%
+                }
+                %> ><%= link.text %></a>
+                </li> <%
             }
-        %></span><%
+        %></ul><%
     }
 
     %>
+    </card-block>
 
     <div class="affiliate-product-sponsored">Sponsored</div>
 

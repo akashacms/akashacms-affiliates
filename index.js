@@ -21,6 +21,7 @@
 
 const fs        = require('fs');
 const url       = require('url');
+const URL       = url.URL;
 const path      = require('path');
 const util      = require('util');
 const akasha    = require('akasharender');
@@ -150,6 +151,14 @@ async function getProductData(metadata, href, productid) {
     if (!data) {
         throw new Error(`getProductData failed to find data in ${href} for ${productid}`);
     }
+
+    // Clone the object so we can modify it without risk to the source object
+    let _data = data;
+    data = {};
+    for (var attr in _data) {
+        if (_data.hasOwnProperty(attr)) data[attr] = _data[attr];
+    }
+
     return data;
 }
 
@@ -231,6 +240,22 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
+        // Ensure there is a productlinks array
+        if (!data.productlinks) {
+            data.productlinks = [];
+        }
+        // console.log(data);
+        const buyurl = data.productbuyurl;
+        // console.log(buyurl);
+        data.productbuyurl = undefined;
+        const buyURL_p = new URL(buyurl);
+        // Push productbuyurl to productlinks
+        data.productlinks.unshift({
+            url: buyurl,
+            text: buyURL_p.hostname,
+            tooltip: `Buy ${data.productname}`,
+            rel: data.productrel
+        });
         data.partialBody = $element.html();
         // dirty();
         return akasha.partial(metadata.config, template, data);
