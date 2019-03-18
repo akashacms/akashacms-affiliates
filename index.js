@@ -244,18 +244,26 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         if (!data.productlinks) {
             data.productlinks = [];
         }
+        if (data.code && !data.anchorName) {
+            data.anchorName = data.code;
+        }
         // console.log(data);
         const buyurl = data.productbuyurl;
         // console.log(buyurl);
         data.productbuyurl = undefined;
-        const buyURL_p = new URL(buyurl);
-        // Push productbuyurl to productlinks
-        data.productlinks.unshift({
-            url: buyurl,
-            text: buyURL_p.hostname,
-            tooltip: `Buy ${data.productname}`,
-            rel: data.productrel
-        });
+        try {
+            const buyURL_p = new URL(buyurl);
+            // Push productbuyurl to productlinks
+            data.productlinks.unshift({
+                url: buyurl,
+                text: buyURL_p.hostname,
+                tooltip: `Buy ${data.productname}`,
+                rel: data.productrel
+            });
+        } catch (e) {
+            console.error(`affiliate-product WARNING productbuyurl ${buyurl} invalid for productid ${productid}`);
+            data.productbuyurl = buyurl;
+        }
         data.partialBody = $element.html();
         // dirty();
         return akasha.partial(metadata.config, template, data);
