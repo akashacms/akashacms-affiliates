@@ -29,56 +29,62 @@ const mahabhuta = akasha.mahabhuta;
 const yaml      = require('js-yaml');
 const domainMatch = require('domain-match');
 
-// const log   = require('debug')('akasha:affiliates-plugin');
-// const error = require('debug')('akasha:error-affiliates-plugin');
-
 const pluginName = "akashacms-affiliates";
+
+const _plugin_config = Symbol('config');
+const _plugin_options = Symbol('options');
 
 module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
     constructor() {
         super(pluginName);
     }
 
-    configure(config) {
+    configure(config, options) {
+        this[_plugin_config] = config;
+        this[_plugin_options] = options;
+        options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
         config.addAssetsDir({
             src: path.join(__dirname, 'buy-images'),
             dest: 'vendor/@akashacms/plugin-affiliates'
         });
-        config.addMahabhuta(module.exports.mahabhuta);
-        config.pluginData(pluginName).products = [];
-        config.pluginData(pluginName).amazonAffiliateCode = [];
-        config.pluginData(pluginName).noSkimlinks = [];
-        config.pluginData(pluginName).noViglinks = [];
+        config.addMahabhuta(module.exports.mahabhutaArray(options));
+        options.products = [];
+        options.amazonAffiliateCode = [];
+        options.noSkimlinks = [];
+        options.noViglinks = [];
     }
+
+    get config() { return this[_plugin_config]; }
+    get options() { return this[_plugin_options]; }
 
     affiliateProduct(config, productid, data) {
         if (data.productamzn) {
             data.productamzn = data.productamzn.map(item => {
-                item.affcode = config.pluginData(pluginName).amazonAffiliateCode[item.countryCode];
+                item.affcode = this.options.amazonAffiliateCode[item.countryCode];
                 return item;
             });
         }
-        config.pluginData(pluginName).products[productid] = data;
+        this.options.products[productid] = data;
         return this;
     }
 
     amazonAffiliateCode(config, countryCode, amznCode) {
-        config.pluginData(pluginName).amazonAffiliateCode[countryCode] = amznCode;
+        this.options.amazonAffiliateCode[countryCode] = amznCode;
         return this;
     }
 
     amazonCodeForCountry(config, countryCode) {
-        return config.pluginData(pluginName).amazonAffiliateCode[countryCode];
+        return this.options.amazonAffiliateCode[countryCode];
     }
 
     noSkimlinksDomain(config, domain) {
-        config.pluginData(pluginName).noSkimlinks.push(domain);
+        this.options.noSkimlinks.push(domain);
         return this;
     }
 
     doNoSkimlinksForDomain(config, domain) {
-        for (var noskimdnm of config.pluginData(pluginName).noSkimlinks) {
+        for (var noskimdnm of this.options.noSkimlinks) {
             if (domain.match(noskimdnm)) {
                 return true;
             }
@@ -87,12 +93,12 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
     }
 
     noViglinksDomain(config, domain) {
-        config.pluginData(pluginName).noViglinks.push(domain);
+        this.options.noViglinks.push(domain);
         return this;
     }
 
     doNoViglinksForDomain(config, domain) {
-        for (var novigdnm of config.pluginData(pluginName).noViglinks) {
+        for (var novigdnm of this.options.noViglinks) {
             if (domain.match(novigdnm)) {
                 return true;
             }
@@ -127,7 +133,7 @@ async function getProductData(metadata, href, productid) {
     let data;
     let products;
     if (href) {
-        let doc = await akasha.readDocument(metadata.config, href);
+        let doc = await akasha.readDocument(this.config, href);
         if (doc && "products" in doc.metadata) {
             products = doc.metadata.products;
         }
@@ -136,7 +142,7 @@ async function getProductData(metadata, href, productid) {
         products = metadata.products;
     }
     if (!products) {
-        products = metadata.config.pluginData(pluginName).products;
+        products = this.options.products;
     }
     if (productid) {
         for (let product of products) {
@@ -170,7 +176,24 @@ async function getProductList(metadata, href, productids) {
     return ret;
 }
 
-module.exports.mahabhuta = new mahabhuta.MahafuncArray(pluginName, {});
+module.exports.mahabhutaArray = function(options) {
+    let ret = new mahabhuta.MahafuncArray(pluginName, options);
+    ret.addMahafunc(new AffiliateLinkMunger());
+    ret.addMahafunc(new AffiliateProductContent());
+    ret.addMahafunc(new AffiliateProductContent());
+    ret.addMahafunc(new AffiliateProductAccordionContent());
+    ret.addMahafunc(new AffiliateProductTableContent());
+    ret.addMahafunc(new AffiliateProductLink());
+    ret.addMahafunc(new AmazonCABuyButtonElement());
+    ret.addMahafunc(new AmazonJPBuyButtonElement());
+    ret.addMahafunc(new AmazonUKBuyButtonElement());
+    ret.addMahafunc(new AmazonUSABuyButtonElement());
+    ret.addMahafunc(new AmazonDEBuyButtonElement());
+    ret.addMahafunc(new AmazonESBuyButtonElement());
+    ret.addMahafunc(new AmazonFRBuyButtonElement());
+    ret.addMahafunc(new AmazonITBuyButtonElement());
+    return ret;
+};
 
 /**
  * Modify the link as appropriate to rules and regulations about affiliate links.
@@ -205,8 +228,8 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
                 { country: "fr",  domain: '*.amazon.fr' /* /amazon\.fr$/i */ },
                 { country: "it",  domain: '*.amazon.it' /* /amazon\.it$/i */ }
             ].forEach(amazonSite => {
-                let amazonCode = metadata.config.plugin(pluginName)
-                        .amazonCodeForCountry(metadata.config, amazonSite.country);
+                let amazonCode = this.array.options.config.plugin(pluginName)
+                        .amazonCodeForCountry(this.array.options.config, amazonSite.country);
                 // console.log(`${urlP.hostname} is ${amazonSite.domain}? ${amazonSite.domain.test(urlP.hostname)} amazonCode ${amazonCode}`);
                 if (domainMatch(amazonSite.domain, href) /* amazonSite.domain.test(urlP.hostname) */ && amazonCode) {
                     akasha.linkRelSetAttr($link, 'nofollow', true);
@@ -215,10 +238,10 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
                 }
             });
 
-            if (metadata.config.plugin(pluginName).doNoSkimlinksForDomain(metadata.config, urlP.hostname)) {
+            if (this.array.options.config.plugin(pluginName).doNoSkimlinksForDomain(this.array.options.config, urlP.hostname)) {
                 akasha.linkRelSetAttr($link, 'noskim', true);
             }
-            if (metadata.config.plugin(pluginName).doNoViglinksForDomain(metadata.config, urlP.hostname)) {
+            if (this.array.options.config.plugin(pluginName).doNoViglinksForDomain(this.array.options.config, urlP.hostname)) {
                 akasha.linkRelSetAttr($link, 'norewrite', true);
             }
         }
@@ -226,7 +249,6 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
         return Promise.resolve("");
     }
 }
-module.exports.mahabhuta.addMahafunc(new AffiliateLinkMunger());
 
 class AffiliateProductContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product"; }
@@ -266,10 +288,9 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         }
         data.partialBody = $element.html();
         // dirty();
-        return akasha.partial(metadata.config, template, data);
+        return akasha.partial(this.array.options.config, template, data);
     }
 }
-module.exports.mahabhuta.addMahafunc(new AffiliateProductContent());
 
 class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-accordion"; }
@@ -308,10 +329,9 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-accordion ${id} ${util.inspect(data)}`);
         dirty();
-        return akasha.partial(metadata.config, template, data);
+        return akasha.partial(this.array.options.config, template, data);
     }
 }
-module.exports.mahabhuta.addMahafunc(new AffiliateProductAccordionContent());
 
 class AffiliateProductTableContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-table"; }
@@ -344,10 +364,9 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
         // dirty();
-        return akasha.partial(metadata.config, template, data);
+        return akasha.partial(this.array.options.config, template, data);
     }
 }
-module.exports.mahabhuta.addMahafunc(new AffiliateProductTableContent());
 
 class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
@@ -390,7 +409,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
 
         if (type === "card") {
             dirty();
-            return akasha.partial(metadata.config, template, {
+            return akasha.partial(this.array.options.config, template, {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
                 productdescription,
@@ -406,7 +425,6 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         }
     }
 }
-module.exports.mahabhuta.addMahafunc(new AffiliateProductLink());
 
 class AmazonBuyButtonElement extends mahabhuta.CustomElement {
     get elementName() { throw new Error("Use a subclass"); }
@@ -416,7 +434,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
         const display  = $element.attr('display');
         const affcode  = $element.attr('affcode')
                 ? $element.attr('affcode')
-                : metadata.config.pluginData(pluginName).amazonAffiliateCode[this.countryCode];
+                : this.array.options.amazonAffiliateCode[this.countryCode];
         const target   = $element.attr('target')
                 ? $element.attr('target')
                 : "_blank";
@@ -429,7 +447,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
         }
 
         if (affcode && template) {
-            return akasha.partial(metadata.config, template, {
+            return akasha.partial(this.array.options.config, template, {
                     targetBlank: target ? (` target="${target}"`) : "",
                     formDisplay: display ? (` style="display: ${display}" !important;`) : "",
                     ASIN: asin,
@@ -452,7 +470,6 @@ class AmazonCABuyButtonElement extends AmazonBuyButtonElement {
     get defaultTemplate() { return "amazon-ca-buy.html.ejs"; }
     get countryCode() { return "ca"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonCABuyButtonElement());
 
 // TBD: amazon-cn-buy
 
@@ -461,42 +478,36 @@ class AmazonJPBuyButtonElement extends AmazonBuyButtonElement {
     get defaultTemplate() { return "amazon-co-jp-buy.html.ejs"; }
     get countryCode() { return "co-jp"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonJPBuyButtonElement());
 
 class AmazonUKBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-co-uk-buy"; }
     get defaultTemplate() { return "amazon-co-uk-buy.html.ejs"; }
     get countryCode() { return "co-uk"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonUKBuyButtonElement());
 
 class AmazonUSABuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-com-buy"; }
     get defaultTemplate() { return "amazon-com-buy.html.ejs"; }
     get countryCode() { return "com"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonUSABuyButtonElement());
 
 class AmazonDEBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-de-buy"; }
     get defaultTemplate() { return "amazon-de-buy.html.ejs"; }
     get countryCode() { return "de"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonDEBuyButtonElement());
 
 class AmazonESBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-es-buy"; }
     get defaultTemplate() { return "amazon-es-buy.html.ejs"; }
     get countryCode() { return "es"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonESBuyButtonElement());
 
 class AmazonFRBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-fr-buy"; }
     get defaultTemplate() { return "amazon-fr-buy.html.ejs"; }
     get countryCode() { return "fr"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonFRBuyButtonElement());
 
 // TBD amazon-in-buy
 
@@ -505,6 +516,5 @@ class AmazonITBuyButtonElement extends AmazonBuyButtonElement {
     get defaultTemplate() { return "amazon-it-buy.html.ejs"; }
     get countryCode() { return "it"; }
 }
-module.exports.mahabhuta.addMahafunc(new AmazonITBuyButtonElement());
 
 // TBD: amazon-mx-buy

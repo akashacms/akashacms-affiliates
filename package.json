@@ -1,10 +1,9 @@
 {
   "name": "akashacms-affiliates",
-  "version": "0.2.4",
+  "version": "0.7.0",
   "description": "AkashaCMS plugin to simplify generating affiliate links",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
