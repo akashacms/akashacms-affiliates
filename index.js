@@ -129,11 +129,11 @@ function setAmazonAffiliateTag(href, tag) {
     return url.format(urlP);
 }
 
-async function getProductData(metadata, href, productid) {
+async function getProductData(metadata, config, href, productid) {
     let data;
     let products;
     if (href) {
-        let doc = await akasha.readDocument(this.config, href);
+        let doc = await akasha.readDocument(config, href);
         if (doc && "products" in doc.metadata) {
             products = doc.metadata.products;
         }
@@ -168,10 +168,10 @@ async function getProductData(metadata, href, productid) {
     return data;
 }
 
-async function getProductList(metadata, href, productids) {
+async function getProductList(metadata, config, href, productids) {
     let ret = [];
     for (let productid of productids) {
-        ret.push(await getProductData(metadata, href, productid));
+        ret.push(await getProductData(metadata, config, href, productid));
     }
     return ret;
 }
@@ -258,7 +258,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.ejs";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const data = await getProductData(metadata, href, productid);
+        const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
@@ -322,7 +322,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
                 id: productid, href
             };
         }); */
-        data.products = await getProductList(metadata, href, productids);
+        data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
         }
@@ -357,7 +357,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             usefade: "fade",
             thumbImageStyle
         };
-        data.products = await getProductList(metadata, href, productids);
+        data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
         }
@@ -399,7 +399,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             href = '/' + metadata.document.renderTo;
         }
 
-        const data = await getProductData(metadata, href, productid);
+        const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
