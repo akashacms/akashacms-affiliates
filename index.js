@@ -34,7 +34,7 @@ const pluginName = "akashacms-affiliates";
 const _plugin_config = Symbol('config');
 const _plugin_options = Symbol('options');
 
-module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
+module.exports = class AffiliatesPlugin extends akasha.Plugin {
     constructor() {
         super(pluginName);
     }
@@ -59,6 +59,9 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
     get options() { return this[_plugin_options]; }
 
     affiliateProduct(config, productid, data) {
+        if (!productid || productid === '') {
+            throw new Error(`Invalid productid ${util.inspect(productid)} for ${util.inspect(data)}`);
+        }
         if (data.productamzn) {
             data.productamzn = data.productamzn.map(item => {
                 item.affcode = this.options.amazonAffiliateCode[item.countryCode];
@@ -109,6 +112,12 @@ module.exports = class AdblockCheckerPlugin extends akasha.Plugin {
     loadAffiliateProducts(config, yamlFile) {
         var doc = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
         for (var product of doc.products) {
+            if (!product) {
+                throw new Error(`Undefined product found in ${yamlFile}`);
+            }
+            if (!product.code) {
+                throw new Error(`No product code supplied in ${util.inspect(product)}`);
+            }
             this.affiliateProduct(config, product.code, product);
         }
         return this;
@@ -130,6 +139,7 @@ function setAmazonAffiliateTag(href, tag) {
 }
 
 async function getProductData(metadata, config, href, productid) {
+    const plugin = config.plugin(pluginName);
     let data;
     let products;
     if (href) {
@@ -142,14 +152,25 @@ async function getProductData(metadata, config, href, productid) {
         products = metadata.products;
     }
     if (!products) {
-        products = this.options.products;
+        products = plugin.options.products;
     }
     if (productid) {
-        for (let product of products) {
+        /* for (let product of products) {
+            if (!product) {
+                // throw new Error(`Undefined product found in ${util.inspect(products)}`);
+                console.warn(`Undefined product found while looking for ${productid}`);
+                continue;
+            }
             if (product.code === productid) {
                 data = product;
                 break;
             }
+        }
+        */
+        if (products[productid]) {
+            data = products[productid];
+        } else {
+            data = undefined;
         }
     } else {
         data = products[Math.floor(Math.random() * products.length)];
@@ -287,7 +308,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             data.productbuyurl = buyurl;
         }
         data.partialBody = $element.html();
-        // dirty();
+        dirty();
         return akasha.partial(this.array.options.config, template, data);
     }
 }
@@ -363,7 +384,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
         }
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
-        // dirty();
+        dirty();
         return akasha.partial(this.array.options.config, template, data);
     }
 }
