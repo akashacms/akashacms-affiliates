@@ -154,25 +154,29 @@ async function getProductData(metadata, config, href, productid) {
     if (!products) {
         products = plugin.options.products;
     }
+    if (!products) {
+        throw new Error(`getProductData no products found href=${href} productid=${productid}`);
+    }
     if (productid) {
-        /* for (let product of products) {
-            if (!product) {
-                // throw new Error(`Undefined product found in ${util.inspect(products)}`);
-                console.warn(`Undefined product found while looking for ${productid}`);
-                continue;
-            }
-            if (product.code === productid) {
-                data = product;
-                break;
-            }
-        }
-        */
+        // Either this is an array of products[productid]
+        // Or an array of objects where product.code === productid
         if (products[productid]) {
             data = products[productid];
         } else {
             data = undefined;
+            for (let product of products) {
+                if (!product) {
+                    // skip over anything like this
+                    continue;
+                }
+                if (product.code === productid) {
+                    data = product;
+                    break;
+                }
+            }
         }
     } else {
+        // If no product ID specified, we can select one at random
         data = products[Math.floor(Math.random() * products.length)];
     }
     if (!data) {
