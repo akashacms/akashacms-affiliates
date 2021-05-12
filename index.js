@@ -49,7 +49,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             dest: 'vendor/@akashacms/plugin-affiliates'
         });
         config.addMahabhuta(module.exports.mahabhutaArray(options));
-        options.products = [];
+        options.products = new Map(); // [];
         options.amazonAffiliateCode = [];
         options.noSkimlinks = [];
         options.noViglinks = [];
@@ -68,7 +68,11 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 return item;
             });
         }
-        this.options.products[productid] = data;
+        if (this.options.products.has(productid)) {
+             this.options.products.delete(productid);
+        }
+        this.options.products.set(productid, data);
+        // this.options.products[productid] = data;
         return this;
     }
 
@@ -110,8 +114,9 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     }
 
     loadAffiliateProducts(config, yamlFile) {
-        var doc = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
-        for (var product of doc.products) {
+        const doc = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
+        console.log(doc.products.length);
+        for (let product of doc.products) {
             if (!product) {
                 throw new Error(`Undefined product found in ${yamlFile}`);
             }
@@ -120,11 +125,21 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             }
             this.affiliateProduct(config, product.code, product);
         }
+        // console.log(this.options.products)
         return this;
     }
 
-    
-
+    filterProducts(searchFN) {
+        const ret = [];
+        for (let [ key, product ] of this.options.products) {
+            // console.log(`key ${key} product ${product}`);
+            if (searchFN(product)) {
+                ret.push(product);
+            }
+        }
+        // console.log(ret);
+        return ret;
+    }
 
 };
 
@@ -158,9 +173,12 @@ async function getProductData(metadata, config, href, productid) {
         throw new Error(`getProductData no products found href=${href} productid=${productid}`);
     }
     if (productid) {
-        // Either this is an array of products[productid]
+        // Either this is a Map of products instances,
+        // Or it is an array of products[productid]
         // Or an array of objects where product.code === productid
-        if (products[productid]) {
+        if (products instanceof Map) {
+            data = products.get(productid);
+        } else if (Array.isArray(products) && products[productid]) {
             data = products[productid];
         } else {
             data = undefined;
@@ -177,7 +195,12 @@ async function getProductData(metadata, config, href, productid) {
         }
     } else {
         // If no product ID specified, we can select one at random
-        data = products[Math.floor(Math.random() * products.length)];
+        if (products instanceof Map) {
+            let prodz = products.values();
+            data = prodz[Math.floor(Math.random() * prodz.length)]
+        } else {
+            data = products[Math.floor(Math.random() * products.length)];
+        }
     }
     if (!data) {
         throw new Error(`getProductData failed to find data in ${href} for ${productid}`);
@@ -244,19 +267,20 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
         if (urlP.protocol || urlP.host) {
 
             [
-                { country: "com", domain: '*.amazon.com' /* /amazon\.com$/i */ },
-                { country: "ca",  domain: '*.amazon.ca' /* /amazon\.ca$/i */ },
-                { country: "co-jp",  domain: '*.amazon.co.jp' /* /amazon\.co\.jp$/i */ },
-                { country: "co-uk",  domain: '*.amazon.co.uk' /* /amazon\.co\.uk$/i */ },
-                { country: "de",  domain: '*.amazon.de' /* /amazon\.de$/i */ },
-                { country: "es",  domain: '*.amazon.es' /* /amazon\.es$/i */ },
-                { country: "fr",  domain: '*.amazon.fr' /* /amazon\.fr$/i */ },
-                { country: "it",  domain: '*.amazon.it' /* /amazon\.it$/i */ }
+                { country: "com", domain: '*.amazon.com' },
+                { country: "ca",  domain: '*.amazon.ca' },
+                { country: "co-jp",  domain: '*.amazon.co.jp' },
+                { country: "co-uk",  domain: '*.amazon.co.uk' },
+                { country: "de",  domain: '*.amazon.de' },
+                { country: "es",  domain: '*.amazon.es' },
+                { country: "fr",  domain: '*.amazon.fr' },
+                { country: "it",  domain: '*.amazon.it' }
             ].forEach(amazonSite => {
                 let amazonCode = this.array.options.config.plugin(pluginName)
                         .amazonCodeForCountry(this.array.options.config, amazonSite.country);
                 // console.log(`${urlP.hostname} is ${amazonSite.domain}? ${amazonSite.domain.test(urlP.hostname)} amazonCode ${amazonCode}`);
-                if (domainMatch(amazonSite.domain, href) /* amazonSite.domain.test(urlP.hostname) */ && amazonCode) {
+                if (domainMatch(amazonSite.domain, href)
+                 && amazonCode) {
                     akasha.linkRelSetAttr($link, 'nofollow', true);
                     $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
                     // console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
@@ -297,7 +321,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         // console.log(data);
         const buyurl = data.productbuyurl;
         // console.log(buyurl);
-        data.productbuyurl = undefined;
+        // data.productbuyurl = undefined;
         try {
             const buyURL_p = new URL(buyurl);
             // Push productbuyurl to productlinks
@@ -342,11 +366,6 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             thumbImageStyle,
             producthref: href
         };
-        /* data.products = productids.map((productid) => {
-            return {
-                id: productid, href
-            };
-        }); */
         data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
@@ -437,6 +456,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             return akasha.partial(this.array.options.config, template, {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
+                productbuyurl: data.productbuyurl,
                 productdescription,
                 content: $element.contents(),
                 float: float, docaption: docaption,
