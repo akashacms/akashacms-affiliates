@@ -1,0 +1,68 @@
+products:
+
+    - code: "1785881507"
+      anchorName: "NodeJSWebDevelopment3rdEdition"
+      href: "/nodejs/learning/products.html"
+      productname: "Node.JS Web Development - Third Edition"
+      productbuyurl: "https://www.amazon.com/Node-JS-Web-Development-David-Herron/dp/1785881507/ref=as_li_ss_tl?ie=UTF8&qid=1468558069&sr=8-2&keywords=node+web+development&linkCode=ll1&tag=techsparx-20&linkId=6259e7c5a409f144dff21568d98a547d"
+      productimgurl: "https://images-na.ssl-images-amazon.com/images/I/41SzsmJa9uL.jpg"
+      productrel: "nofollow noskim"
+      productdescription: |
+        <p>NOTE -- I am the author of this book.</p>
+      productamzn:
+        - asin: "1785881507"
+          countryCode: com
+
+    - code: wattzilla75
+      anchorName: wattzilla75
+      productname: "Wall Wattz: EVSE, Level 2, 75 Amp Output, 25' J1772 charging cable w/ Cable Management System, Satin finish, Type 4X outdoor enclosure"
+      productbuyurl: "https://www.amazon.com/dp/B06Y3KCWD7/ref=as_li_ss_tl?psc=1&linkCode=ll1&tag=visforvoltage-20&linkId=b454aebccf2a191481d7c28e2836dab6"
+      productimgurl: "https://images-na.ssl-images-amazon.com/images/I/81vpi6xNYAL._SL1500_.jpg"
+      productrel: "nofollow noskim"
+      productdescription: 'For those electric cars supporting high-rate Level 2 AC charging rate,'
+      attributes:
+          power: "75 amps"
+          volts: "240 volts"
+          rate: "50 miles per hour of charging"
+          outlet: "Hardwired"
+          plug: "J1772 type 1"
+          cordlength: "25 feet"
+          size: "11 x 7.5 x 4.25 inches"
+      productattributes:
+          - "Charge Rate 75 amps - roughly 50 miles range per hour of charging"
+          - "11 x 7.5 x 4.2 inches"
+      productamzn:
+          - asin: "B06Y3KCWD7"
+            countryCode: com
+      amznassociatetag: "thereikipage"
+
+    - code: maxgreen16gen2
+      anchorName: maxgreen16gen2
+      productname: "MAX GREEN Upgraded Version Level 1&Level 2 EV Charger, Portable Electric Vehicle Charger (16A,120V 25FT) Included Five Adapters, Fast EV Home Charging Station"
+      productbuyurl: "https://www.amazon.com/dp/B07J4VCYKL?&linkCode=ll1&tag=longtailpipe-20&linkId=724a4b82865a81f202f0f7925bf323c2&language=en_US&ref_=as_li_ss_tl"
+      productimgurl: "https://images-na.ssl-images-amazon.com/images/I/71pdNWfVx0L._AC_SL1500_.jpg"
+      gallery:
+          - url: "https://images-na.ssl-images-amazon.com/images/I/71x3F75eFuL._AC_SL1500_.jpg"
+          - url: "https://images-na.ssl-images-amazon.com/images/I/717%2BwhgvZ4L._AC_SL1500_.jpg"
+          - url: "https://images-na.ssl-images-amazon.com/images/I/61ONTRFfGhL._AC_SL1200_.jpg"
+          - url: "https://images-na.ssl-images-amazon.com/images/I/81E7wDbdNdL._AC_SL1500_.jpg"
+          - url: "https://images-na.ssl-images-amazon.com/images/I/71mP0ZvECXL._AC_SL1500_.jpg"
+          - url: "https://images-na.ssl-images-amazon.com/images/I/61rkZ19vvkL._AC_SL1200_.jpg"
+      productrel: "nofollow noskim"
+      attributes:
+          power: "16 amps"
+          volts: "240 volts"
+          rate: "15 miles per hour of charging"
+          outlet: "NEMA 10-30, NEMA 14-50, NEMA14-30, NEMA6-50 and NEMA 5-15"
+          plug: "J1772 type 1"
+          cordlength: "25 feet"
+          size: "15.8 x 12.2 x 5.2 inches"
+      productdescription: 'This luggable charging station '
+      productattributes:
+          - "Charge Rate 16 amps - roughly 15 miles range per hour of charging"
+          - "11.73 pounds"
+          - "15.8 x 12.2 x 5.2 inches"
+      productamzn:
+          - asin: "B07J4VCYKL"
+            countryCode: com
+      amznassociatetag: "thereikipage"
