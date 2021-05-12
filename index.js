@@ -115,7 +115,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     loadAffiliateProducts(config, yamlFile) {
         const doc = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
-        console.log(doc.products.length);
+        // console.log(doc.products.length);
         for (let product of doc.products) {
             if (!product) {
                 throw new Error(`Undefined product found in ${yamlFile}`);
