@@ -416,28 +416,19 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
         const productid = $element.attr('productid');
-        const type = $element.attr('type') 
-                ? $element.attr('type') 
-                : 'card';
-        const float = $element.attr('float')
-                ? $element.attr('float')
-                : "left";
-        const width = $element.attr('width')
-                ? $element.attr('width')
-                : "200px";
-        const height = $element.attr('height')
-                ? $element.attr('height')
-                : "100%";
-        const style = $element.attr('style')
-                ? $element.attr('style')
-                : "width: 100%;";
+        const type   = $element.attr('type')   ? $element.attr('type')   : 'card';
+        const float  = $element.attr('float')  ? $element.attr('float')  : "left";
+        const width  = $element.attr('width')  ? $element.attr('width')  : "200px";
+        const height = $element.attr('height') ? $element.attr('height') : "100%";
+        const style  = $element.attr('style')  ? $element.attr('style')  : "width: 100%;";
         const template = $element.attr('template') 
                 ? $element.attr('template') 
                 : "affiliate-product-link-card.html.ejs"; 
-        let href = $element.attr('href');
         const docaption = $element.attr('docaption')
                 ? $element.attr('docaption')
                 : "true";
+        let href = $element.attr('href');
+        const isdirtyattr = $element.attr('dirty');
         
         if (!href) {
             href = '/' + metadata.document.renderTo;
@@ -452,7 +443,13 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         const productdescription = data.productdescription;
 
         if (type === "card") {
-            dirty();
+            // The templates for this which I've reviewed are not worthy of
+            // requiring the <code>dirty</code> flag.  However, there might be
+            // templates for which this is appropriate.
+            //
+            // Therefore the user of the element is required to set
+            // the <code>isdirty</code> flag.
+            if (isdirtyattr) dirty();
             return akasha.partial(this.array.options.config, template, {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
