@@ -19,7 +19,7 @@
 
 'use strict';
 
-const fs        = require('fs');
+const fs        = require('fs/promises');
 const url       = require('url');
 const URL       = url.URL;
 const path      = require('path');
@@ -33,6 +33,7 @@ const pluginName = "akashacms-affiliates";
 
 const _plugin_config = Symbol('config');
 const _plugin_options = Symbol('options');
+const _plugin_data_files = Symbol('filez');
 
 module.exports = class AffiliatesPlugin extends akasha.Plugin {
     constructor() {
@@ -49,16 +50,81 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             dest: 'vendor/@akashacms/plugin-affiliates'
         });
         config.addMahabhuta(module.exports.mahabhutaArray(options));
-        options.products = new Map(); // [];
+        // options.products = new Map(); // []; -- No longer needed
         options.amazonAffiliateCode = [];
         options.noSkimlinks = [];
         options.noViglinks = [];
+        this[_plugin_data_files] = [];
     }
 
     get config() { return this[_plugin_config]; }
     get options() { return this[_plugin_options]; }
 
-    affiliateProduct(config, productid, data) {
+    async getCache() {
+        const cache = await akasha.cache;
+        const coll = cache.getCache(pluginName, { create: true });
+        if (!coll) {
+            throw new Error(`${pluginName} getCache failed to getCache ${coll}`);
+        }
+        return coll;
+    }
+
+    // Ensure the cache is set up
+    async onPluginCacheSetup() {
+        console.log(`onPluginCacheSetup`);
+
+        await this.getCache();
+
+        for (let datafile of this[_plugin_data_files]) {
+            const doc = yaml.safeLoad(await fs.readFile(datafile, 'utf8'));
+            console.log(`onPluginCacheSetup loading ${doc.products.length} items from ${datafile}`);
+            // console.log(doc.products.length);
+            for (let product of doc.products) {
+                if (!product) {
+                    throw new Error(`Undefined product found in ${yamlFile}`);
+                }
+                if (!product.code) {
+                    throw new Error(`No product code supplied in ${util.inspect(product)}`);
+                }
+                this.affiliateProduct(this.config, product.code, product);
+            }
+        }
+    }
+
+    async getProductByCode(productid) {
+        const coll = await this.getCache();
+        let found = coll.find({
+            code: { $eeq: productid }
+        });
+        if (!found) return undefined;
+        if (!Array.isArray(found)) return undefined;
+        if (found.length <= 0) return undefined;
+        return found[0];
+    }
+
+    async deleteProductByCode(productid) {
+        const coll = await this.getCache();
+        coll.remove({
+            code: { $eeq: productid }
+        });
+    }
+
+    async affiliateProduct(config, productid, data) {
+        const coll = await this.getCache();
+        let _data = await this.getProductByCode(productid);
+        if (_data) {
+            await this.deleteProductByCode(productid);
+        }
+        if (data.productamzn) {
+            data.productamzn = data.productamzn.map(item => {
+                item.affcode = this.options.amazonAffiliateCode[item.countryCode];
+                return item;
+            });
+        }
+        coll.insert(data);
+    }
+
+    /* affiliateProduct(config, productid, data) {
         if (!productid || productid === '') {
             throw new Error(`Invalid productid ${util.inspect(productid)} for ${util.inspect(data)}`);
         }
@@ -74,7 +140,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         this.options.products.set(productid, data);
         // this.options.products[productid] = data;
         return this;
-    }
+    } */
 
     amazonAffiliateCode(config, countryCode, amznCode) {
         this.options.amazonAffiliateCode[countryCode] = amznCode;
@@ -114,24 +180,14 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     }
 
     loadAffiliateProducts(config, yamlFile) {
-        const doc = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
-        // console.log(doc.products.length);
-        for (let product of doc.products) {
-            if (!product) {
-                throw new Error(`Undefined product found in ${yamlFile}`);
-            }
-            if (!product.code) {
-                throw new Error(`No product code supplied in ${util.inspect(product)}`);
-            }
-            this.affiliateProduct(config, product.code, product);
-        }
-        // console.log(this.options.products)
-        return this;
+        this[_plugin_data_files].push(yamlFile);
     }
 
-    filterProducts(searchFN) {
+    async filterProducts(searchFN) {
+        const coll = await this.getCache();
+        const products = coll.find({});
         const ret = [];
-        for (let [ key, product ] of this.options.products) {
+        for (let product of products) {
             // console.log(`key ${key} product ${product}`);
             if (searchFN(product)) {
                 ret.push(product);
@@ -139,6 +195,97 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         }
         // console.log(ret);
         return ret;
+    }
+
+    async onFileAdded(config, collection, vpinfo) {
+        if (vpinfo.docMetadata
+         && vpinfo.docMetadata.products
+         && Array.isArray(vpinfo.docMetadata.products)) {
+            for (let product of products) {
+                product.doc.vpath = vpinfo.vpath;
+                product.doc.renderPath = vpinfo.renderPath;
+                await affiliateProduct(config, product.code, product);
+            }
+        }
+    }
+
+    async onFileChanged(config, collection, vpinfo) {
+        if (vpinfo.docMetadata
+         && vpinfo.docMetadata.products
+         && Array.isArray(vpinfo.docMetadata.products)) {
+            for (let product of products) {
+                product.doc.vpath = vpinfo.vpath;
+                product.doc.renderPath = vpinfo.renderPath;
+                await affiliateProduct(config, product.code, product);
+            }
+        }
+    }
+
+    async onFileUnlinked(config, collection, vpinfo) {
+        const coll = await this.getCache();
+        coll.remove({
+            product: {
+                doc: {
+                    vpath: { $eeq: vpinfo.vpath }
+                }
+            }
+        });
+    }
+
+    async getProductData(href, productid) {
+        if (!productid) return this.getRandomProduct(href);
+        const coll = await this.getCache();
+        const selector = {
+            code: { $eeq: productid }
+        };
+        if (href) {
+            selector.product.doc = {
+                $or: [
+                    { vpath: { $eeq: href } },
+                    { renderPath: { $eeq: href } }
+                ]
+            }
+        }
+        const found = coll.find(selector);
+        if (!found) return undefined;
+        if (!Array.isArray(found)) return undefined;
+        if (found.length <= 0) return undefined;
+        return found[0];
+    }
+
+    async getProductList(href, productids) {
+        let ret = [];
+        for (let productid of productids) {
+            ret.push(await this.getProductData(href, productid));
+        }
+        return ret;
+    }
+
+    async getRandomProduct(href) {
+        const coll = await this.getCache();
+        const selector = {};
+        if (href) {
+            selector.product.doc = {
+                $or: [
+                    { vpath: { $eeq: href } },
+                    { renderPath: { $eeq: href } }
+                ]
+            }
+        }
+        const found = coll.find(selector);
+        if (!found) return undefined;
+        if (!Array.isArray(found)) return undefined;
+        if (found.length <= 0) return undefined;
+        return found[Math.floor(Math.random() * found.length)];
+    }
+
+    async getAllProducts() {
+        const coll = await this.getCache();
+        const found = coll.find({});
+        if (!found) return undefined;
+        if (!Array.isArray(found)) return undefined;
+        if (found.length <= 0) return undefined;
+        return found;
     }
 
 };
@@ -153,6 +300,7 @@ function setAmazonAffiliateTag(href, tag) {
     return url.format(urlP);
 }
 
+/* -- NO LONGER NEEDED
 async function getProductData(metadata, config, href, productid) {
     const plugin = config.plugin(pluginName);
     let data;
@@ -215,7 +363,9 @@ async function getProductData(metadata, config, href, productid) {
 
     return data;
 }
+*/
 
+/* - NO LONGER NEEDED
 async function getProductList(metadata, config, href, productids) {
     let ret = [];
     for (let productid of productids) {
@@ -223,6 +373,7 @@ async function getProductList(metadata, config, href, productids) {
     }
     return ret;
 }
+*/
 
 module.exports.mahabhutaArray = function(options) {
     let ret = new mahabhuta.MahafuncArray(pluginName, options);
@@ -307,7 +458,9 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.ejs";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const data = await getProductData(metadata, this.array.options.config, href, productid);
+        const data = this.array.options.config.plugin(pluginName)
+                                .getProductData(href, productid);
+        // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
         }
@@ -366,7 +519,9 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             thumbImageStyle,
             producthref: href
         };
-        data.products = await getProductList(metadata, this.array.options.config, href, productids);
+        data.products = this.array.options.config.plugin(pluginName)
+                                .getProductList(href, productid);
+        // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
         }
@@ -401,7 +556,9 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             usefade: "fade",
             thumbImageStyle
         };
-        data.products = await getProductList(metadata, this.array.options.config, href, productids);
+        data.products = this.array.options.config.plugin(pluginName)
+                                .getProductList(href, productid);
+        // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
         }
@@ -434,7 +591,9 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             href = '/' + metadata.document.renderTo;
         }
 
-        const data = await getProductData(metadata, this.array.options.config, href, productid);
+        const data = this.array.options.config.plugin(pluginName)
+                                .getProductData(href, productid);
+        // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
