@@ -31,6 +31,10 @@ const domainMatch = require('domain-match');
 
 const pluginName = "akashacms-affiliates";
 
+// This will hold a pointer to the ForerunnerDB collection
+// used by this plugin
+let cache;
+
 const _plugin_config = Symbol('config');
 const _plugin_options = Symbol('options');
 const _plugin_data_files = Symbol('filez');
@@ -60,8 +64,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     get config() { return this[_plugin_config]; }
     get options() { return this[_plugin_options]; }
 
-    async getCache() {
-        const cache = await akasha.cache;
+    getCache() {
         const coll = cache.getCache(pluginName, { create: true });
         if (!coll) {
             throw new Error(`${pluginName} getCache failed to getCache ${coll}`);
@@ -73,7 +76,9 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     async onPluginCacheSetup() {
         // console.log(`onPluginCacheSetup`);
 
-        await this.getCache();
+        cache = await akasha.cache;
+
+        this.getCache();
 
         for (let datafile of this[_plugin_data_files]) {
             const doc = yaml.safeLoad(await fs.readFile(datafile, 'utf8'));
@@ -91,8 +96,8 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         }
     }
 
-    async getProductByCode(productid) {
-        const coll = await this.getCache();
+    getProductByCode(productid) {
+        const coll = this.getCache();
         let found = coll.find({
             code: { $eeq: productid }
         });
@@ -102,18 +107,18 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return found[0];
     }
 
-    async deleteProductByCode(productid) {
-        const coll = await this.getCache();
+    deleteProductByCode(productid) {
+        const coll = this.getCache();
         coll.remove({
             code: { $eeq: productid }
         });
     }
 
-    async affiliateProduct(config, productid, data) {
-        const coll = await this.getCache();
-        let _data = await this.getProductByCode(productid);
+    affiliateProduct(config, productid, data) {
+        const coll = this.getCache();
+        let _data = this.getProductByCode(productid);
         if (_data) {
-            await this.deleteProductByCode(productid);
+            this.deleteProductByCode(productid);
         }
         if (data.productamzn) {
             data.productamzn = data.productamzn.map(item => {
@@ -184,8 +189,8 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         this[_plugin_data_files].push(yamlFile);
     }
 
-    async filterProducts(searchFN) {
-        const coll = await this.getCache();
+    filterProducts(searchFN) {
+        const coll = this.getCache();
         const products = coll.find({});
         const ret = [];
         for (let product of products) {
@@ -198,7 +203,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return ret;
     }
 
-    async onFileAdded(config, collection, vpinfo) {
+    onFileAdded(config, collection, vpinfo) {
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
@@ -206,12 +211,12 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 if (!(product.doc)) product.doc = {};
                 product.doc.vpath = vpinfo.vpath;
                 product.doc.renderPath = vpinfo.renderPath;
-                await this.affiliateProduct(config, product.code, product);
+                this.affiliateProduct(config, product.code, product);
             }
         }
     }
 
-    async onFileChanged(config, collection, vpinfo) {
+    onFileChanged(config, collection, vpinfo) {
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
@@ -219,20 +224,20 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 if (!(product.doc)) product.doc = {};
                 product.doc.vpath = vpinfo.vpath;
                 product.doc.renderPath = vpinfo.renderPath;
-                await this.affiliateProduct(config, product.code, product);
+                this.affiliateProduct(config, product.code, product);
             }
         }
     }
 
-    async onFileUnlinked(config, collection, vpinfo) {
-        const coll = await this.getCache();
+    onFileUnlinked(config, collection, vpinfo) {
+        const coll = this.getCache();
         coll.remove({
             doc: { vpath: { $eeq: vpinfo.vpath } }
         });
     }
 
-    async select(selector) {
-        const coll = await this.getCache();
+    select(selector) {
+        const coll = this.getCache();
         const found = coll.find(selector);
         if (!found) return undefined;
         if (!Array.isArray(found)) return undefined;
@@ -240,7 +245,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return found;
     }
 
-    async getProductData(href, productid) {
+    getProductData(href, productid) {
         if (!productid) return this.getRandomProduct(href);
         const selector = {
             code: { $eeq: productid }
@@ -251,19 +256,19 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 { doc: { renderPath: { $eeq: href } } }
             ];
         }
-        const found = await this.select(selector);
+        const found = this.select(selector);
         return found[0];
     }
 
-    async getProductList(href, productids) {
+    getProductList(href, productids) {
         let ret = [];
         for (let productid of productids) {
-            ret.push(await this.getProductData(href, productid));
+            ret.push(this.getProductData(href, productid));
         }
         return ret;
     }
 
-    async getRandomProduct(href) {
+    getRandomProduct(href) {
         const selector = {};
         if (href) {
             selector['$or'] = [
@@ -271,12 +276,12 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 { doc: { renderPath: { $eeq: href } } }
             ];
         }
-        const found = await this.select(selector);
+        const found = this.select(selector);
         return found[Math.floor(Math.random() * found.length)];
     }
 
-    async getAllProducts() {
-        return await this.select({});
+    getAllProducts() {
+        return this.select({});
     }
 
 };
@@ -448,7 +453,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.ejs";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const data = await this.array.options.config.plugin(pluginName)
+        const data = this.array.options.config.plugin(pluginName)
                                 .getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
@@ -512,7 +517,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             thumbImageStyle,
             producthref: href
         };
-        data.products = await this.array.options.config.plugin(pluginName)
+        data.products = this.array.options.config.plugin(pluginName)
                                 .getProductList(href, productid);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -549,7 +554,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             usefade: "fade",
             thumbImageStyle
         };
-        data.products = await this.array.options.config.plugin(pluginName)
+        data.products = this.array.options.config.plugin(pluginName)
                                 .getProductList(href, productid);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -584,7 +589,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             href = '/' + metadata.document.renderTo;
         }
 
-        const data = await this.array.options.config.plugin(pluginName)
+        const data = this.array.options.config.plugin(pluginName)
                                 .getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {

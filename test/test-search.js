@@ -33,7 +33,7 @@ describe('build site', function() {
 
 describe('find products', function() {
     it('should have correct number of products', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                                     .getAllProducts();
         assert.isNotNull(found);
         assert.isArray(found);
@@ -41,7 +41,7 @@ describe('find products', function() {
     });
 
     it('should find product 1785881507', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                             .getProductData(undefined, '1785881507');
         assert.isNotNull(found);
         assert.isNotArray(found);
@@ -50,7 +50,7 @@ describe('find products', function() {
     });
 
     it('should find product wattzilla75', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                             .getProductData(undefined, 'wattzilla75');
         assert.isNotNull(found);
         assert.isNotArray(found);
@@ -59,7 +59,7 @@ describe('find products', function() {
     });
 
     it('should find product maxgreen16gen2', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                             .getProductData(undefined, 'maxgreen16gen2');
         assert.isNotNull(found);
         assert.isNotArray(found);
@@ -70,7 +70,7 @@ describe('find products', function() {
     });
 
     it('should find product in document', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                             .getProductData('products.html', 'P3-international-P4460-kill-a-watt');
         assert.isOk(found);
         assert.isNotArray(found);
@@ -82,7 +82,7 @@ describe('find products', function() {
     });
 
     it('should find product list', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                             .getProductList(undefined, [
                                 '1785881507',
                                 'wattzilla75',
@@ -130,7 +130,7 @@ describe('find products', function() {
 
 describe('filter products', function() {
     it('should find by code', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                         .filterProducts(item => {
                             // console.log(`item.code ${item.code} === '1785881507'?`)
                             return item.code === '1785881507';
@@ -141,7 +141,7 @@ describe('filter products', function() {
     });
 
     it('should find items', async function() {
-        let found = await config.plugin('akashacms-affiliates')
+        let found = config.plugin('akashacms-affiliates')
                         .filterProducts(item => {
                             return item.attributes
                                 && item.attributes.volts
