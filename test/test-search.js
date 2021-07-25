@@ -37,7 +37,7 @@ describe('find products', function() {
                                     .getAllProducts();
         assert.isNotNull(found);
         assert.isArray(found);
-        assert.equal(found.length, 3);
+        assert.equal(found.length, 5);
     });
 
     it('should find product 1785881507', async function() {
@@ -63,8 +63,22 @@ describe('find products', function() {
                             .getProductData(undefined, 'maxgreen16gen2');
         assert.isNotNull(found);
         assert.isNotArray(found);
-        assert.equal(found.productname, "MAX GREEN Upgraded Version Level 1&Level 2 EV Charger, Portable Electric Vehicle Charger (16A,120V 25FT) Included Five Adapters, Fast EV Home Charging Station");
-        assert.equal(found.anchorName, 'maxgreen16gen2');
+        assert.equal(found.productname,
+            "MAX GREEN Upgraded Version Level 1&Level 2 EV Charger, Portable Electric Vehicle Charger (16A,120V 25FT) Included Five Adapters, Fast EV Home Charging Station");
+        assert.equal(found.anchorName,
+            'maxgreen16gen2');
+    });
+
+    it('should find product in document', async function() {
+        let found = await config.plugin('akashacms-affiliates')
+                            .getProductData('products.html', 'P3-international-P4460-kill-a-watt');
+        assert.isOk(found);
+        assert.isNotArray(found);
+        // console.log(found);
+        assert.equal(found.productname,
+            "P3 International P4460 Kill A Watt EZ Electricity Usage Monitor");
+        assert.equal(found.anchorName,
+            'P3-international-P4460-kill-a-watt');
     });
 
     it('should find product list', async function() {
@@ -72,11 +86,12 @@ describe('find products', function() {
                             .getProductList(undefined, [
                                 '1785881507',
                                 'wattzilla75',
-                                'maxgreen16gen2'
+                                'maxgreen16gen2',
+                                'efergy-elite-wireless-electricity-monitor'
                             ]);
         assert.isNotNull(found);
         assert.isArray(found);
-        assert.equal(found.length, 3);
+        assert.equal(found.length, 4);
 
         const expected = [
             {
@@ -90,6 +105,10 @@ describe('find products', function() {
             {
                 productname: "MAX GREEN Upgraded Version Level 1&Level 2 EV Charger, Portable Electric Vehicle Charger (16A,120V 25FT) Included Five Adapters, Fast EV Home Charging Station",
                 anchorName: 'maxgreen16gen2'
+            },
+            {
+                productname: "Efergy Elite Wireless Electricity Monitor",
+                anchorName: 'efergy-elite-wireless-electricity-monitor'
             }
         ];
 

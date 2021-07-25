@@ -71,13 +71,13 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     // Ensure the cache is set up
     async onPluginCacheSetup() {
-        console.log(`onPluginCacheSetup`);
+        // console.log(`onPluginCacheSetup`);
 
         await this.getCache();
 
         for (let datafile of this[_plugin_data_files]) {
             const doc = yaml.safeLoad(await fs.readFile(datafile, 'utf8'));
-            console.log(`onPluginCacheSetup loading ${doc.products.length} items from ${datafile}`);
+            // console.log(`onPluginCacheSetup loading ${doc.products.length} items from ${datafile}`);
             // console.log(doc.products.length);
             for (let product of doc.products) {
                 if (!product) {
@@ -122,6 +122,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             });
         }
         coll.insert(data);
+        // console.log(`NEW affiliateProduct ${productid} ${util.inspect(data.doc)} ${data.productname}`);
     }
 
     /* affiliateProduct(config, productid, data) {
@@ -201,10 +202,11 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
-            for (let product of products) {
+            for (let product of vpinfo.docMetadata.products) {
+                if (!(product.doc)) product.doc = {};
                 product.doc.vpath = vpinfo.vpath;
                 product.doc.renderPath = vpinfo.renderPath;
-                await affiliateProduct(config, product.code, product);
+                await this.affiliateProduct(config, product.code, product);
             }
         }
     }
@@ -213,10 +215,11 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
-            for (let product of products) {
+            for (let product of vpinfo.docMetadata.products) {
+                if (!(product.doc)) product.doc = {};
                 product.doc.vpath = vpinfo.vpath;
                 product.doc.renderPath = vpinfo.renderPath;
-                await affiliateProduct(config, product.code, product);
+                await this.affiliateProduct(config, product.code, product);
             }
         }
     }
@@ -224,32 +227,31 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     async onFileUnlinked(config, collection, vpinfo) {
         const coll = await this.getCache();
         coll.remove({
-            product: {
-                doc: {
-                    vpath: { $eeq: vpinfo.vpath }
-                }
-            }
+            doc: { vpath: { $eeq: vpinfo.vpath } }
         });
     }
 
-    async getProductData(href, productid) {
-        if (!productid) return this.getRandomProduct(href);
+    async select(selector) {
         const coll = await this.getCache();
-        const selector = {
-            code: { $eeq: productid }
-        };
-        if (href) {
-            selector.product.doc = {
-                $or: [
-                    { vpath: { $eeq: href } },
-                    { renderPath: { $eeq: href } }
-                ]
-            }
-        }
         const found = coll.find(selector);
         if (!found) return undefined;
         if (!Array.isArray(found)) return undefined;
         if (found.length <= 0) return undefined;
+        return found;
+    }
+
+    async getProductData(href, productid) {
+        if (!productid) return this.getRandomProduct(href);
+        const selector = {
+            code: { $eeq: productid }
+        };
+        if (href) {
+            selector['$or'] = [
+                { doc: { vpath: { $eeq: href } } },
+                { doc: { renderPath: { $eeq: href } } }
+            ];
+        }
+        const found = await this.select(selector);
         return found[0];
     }
 
@@ -262,30 +264,19 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     }
 
     async getRandomProduct(href) {
-        const coll = await this.getCache();
         const selector = {};
         if (href) {
-            selector.product.doc = {
-                $or: [
-                    { vpath: { $eeq: href } },
-                    { renderPath: { $eeq: href } }
-                ]
-            }
+            selector['$or'] = [
+                { doc: { vpath: { $eeq: href } } },
+                { doc: { renderPath: { $eeq: href } } }
+            ];
         }
-        const found = coll.find(selector);
-        if (!found) return undefined;
-        if (!Array.isArray(found)) return undefined;
-        if (found.length <= 0) return undefined;
+        const found = await this.select(selector);
         return found[Math.floor(Math.random() * found.length)];
     }
 
     async getAllProducts() {
-        const coll = await this.getCache();
-        const found = coll.find({});
-        if (!found) return undefined;
-        if (!Array.isArray(found)) return undefined;
-        if (found.length <= 0) return undefined;
-        return found;
+        return await this.select({});
     }
 
 };
@@ -379,7 +370,6 @@ module.exports.mahabhutaArray = function(options) {
     let ret = new mahabhuta.MahafuncArray(pluginName, options);
     ret.addMahafunc(new AffiliateLinkMunger());
     ret.addMahafunc(new AffiliateProductContent());
-    ret.addMahafunc(new AffiliateProductContent());
     ret.addMahafunc(new AffiliateProductAccordionContent());
     ret.addMahafunc(new AffiliateProductTableContent());
     ret.addMahafunc(new AffiliateProductLink());
@@ -458,11 +448,14 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.ejs";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const data = this.array.options.config.plugin(pluginName)
+        const data = await this.array.options.config.plugin(pluginName)
                                 .getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
+        }
+        if (!data.productname) {
+            throw new Error(`${pluginName} no product name for ${productid} in ${metadata.document.path} ${util.inspect(data)}`);
         }
         // Ensure there is a productlinks array
         if (!data.productlinks) {
@@ -519,7 +512,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             thumbImageStyle,
             producthref: href
         };
-        data.products = this.array.options.config.plugin(pluginName)
+        data.products = await this.array.options.config.plugin(pluginName)
                                 .getProductList(href, productid);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -556,7 +549,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             usefade: "fade",
             thumbImageStyle
         };
-        data.products = this.array.options.config.plugin(pluginName)
+        data.products = await this.array.options.config.plugin(pluginName)
                                 .getProductList(href, productid);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -591,7 +584,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             href = '/' + metadata.document.renderTo;
         }
 
-        const data = this.array.options.config.plugin(pluginName)
+        const data = await this.array.options.config.plugin(pluginName)
                                 .getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
