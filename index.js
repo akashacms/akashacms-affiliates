@@ -34,6 +34,7 @@ const pluginName = "akashacms-affiliates";
 // This will hold a pointer to the ForerunnerDB collection
 // used by this plugin
 let cache;
+let filecache;
 
 const _plugin_config = Symbol('config');
 const _plugin_options = Symbol('options');
@@ -77,6 +78,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         // console.log(`onPluginCacheSetup`);
 
         cache = await akasha.cache;
+        filecache = await akasha.filecache;
 
         this.getCache();
 
@@ -203,6 +205,10 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return ret;
     }
 
+    // These two hook functions automatically incorporate
+    // affiliate product data from any document that has
+    // such metadata
+
     onFileAdded(config, collection, vpinfo) {
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
@@ -229,6 +235,10 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         }
     }
 
+    // This hook function automatically removes any
+    // affiliate product data corresponding to the
+    // document which has been removed
+
     onFileUnlinked(config, collection, vpinfo) {
         const coll = this.getCache();
         coll.remove({
@@ -245,7 +255,15 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return found;
     }
 
-    getProductData(href, productid) {
+    getProductData(_href, productid) {
+        let href;
+        if (_href) {
+            href = _href.startsWith('/')
+                    ? _href.substring(1)
+                    : _href;
+        } else {
+            href = undefined;
+        }
         if (!productid) return this.getRandomProduct(href);
         const selector = {
             code: { $eeq: productid }
@@ -257,10 +275,25 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             ];
         }
         const found = this.select(selector);
+        if (!found
+         || !Array.isArray(found)
+         || found.length <= 0) {
+            // console.log(`getProductData failed to find anything for ${productid} ${href} ${JSON.stringify(selector)}`);
+            // console.log(filecache.documents.find(href));
+            return undefined;
+         }
         return found[0];
     }
 
-    getProductList(href, productids) {
+    getProductList(_href, productids) {
+        let href;
+        if (_href) {
+            href = _href.startsWith('/')
+                    ? _href.substring(1)
+                    : _href;
+        } else {
+            href = undefined;
+        }
         let ret = [];
         for (let productid of productids) {
             ret.push(this.getProductData(href, productid));
@@ -268,7 +301,15 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return ret;
     }
 
-    getRandomProduct(href) {
+    getRandomProduct(_href) {
+        let href;
+        if (_href) {
+            href = _href.startsWith('/')
+                    ? _href.substring(1)
+                    : _href;
+        } else {
+            href = undefined;
+        }
         const selector = {};
         if (href) {
             selector['$or'] = [
@@ -585,9 +626,25 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         let href = $element.attr('href');
         const isdirtyattr = $element.attr('dirty');
         
+        /* WTF?  The href passed to getProductData is
+         * there to support a document where products are
+         * listed in the metadata.  It does not make sense
+         * to substitute an href if one was not given in
+         * the custom tag.  This substitution is for the
+         * current document, but we do not know if this
+         * document has any products, nor do we know if the
+         * document lists the given document.  It's better
+         * if the user of this custom tag explicitly give
+         * the href if desired.
+         *
+         * In every other custom tag, there is no
+         * substitution for the href value if none is
+         * explicitly given in the custom tag.
+         *
         if (!href) {
             href = '/' + metadata.document.renderTo;
         }
+        */
 
         const data = this.array.options.config.plugin(pluginName)
                                 .getProductData(href, productid);

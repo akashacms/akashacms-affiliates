@@ -81,6 +81,30 @@ describe('find products', function() {
             'P3-international-P4460-kill-a-watt');
     });
 
+    it('should find product in document with leading slash', async function() {
+        let found = config.plugin('akashacms-affiliates')
+                            .getProductData('/products.html', 'P3-international-P4460-kill-a-watt');
+        assert.isOk(found);
+        assert.isNotArray(found);
+        // console.log(found);
+        assert.equal(found.productname,
+            "P3 International P4460 Kill A Watt EZ Electricity Usage Monitor");
+        assert.equal(found.anchorName,
+            'P3-international-P4460-kill-a-watt');
+    });
+
+    it('should find product in document with full file name', async function() {
+        let found = config.plugin('akashacms-affiliates')
+                            .getProductData('/products.html.md', 'P3-international-P4460-kill-a-watt');
+        assert.isOk(found);
+        assert.isNotArray(found);
+        // console.log(found);
+        assert.equal(found.productname,
+            "P3 International P4460 Kill A Watt EZ Electricity Usage Monitor");
+        assert.equal(found.anchorName,
+            'P3-international-P4460-kill-a-watt');
+    });
+
     it('should find product list', async function() {
         let found = config.plugin('akashacms-affiliates')
                             .getProductList(undefined, [
