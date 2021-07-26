@@ -559,7 +559,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             producthref: href
         };
         data.products = this.array.options.config.plugin(pluginName)
-                                .getProductList(href, productid);
+                                .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
@@ -596,7 +596,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             thumbImageStyle
         };
         data.products = this.array.options.config.plugin(pluginName)
-                                .getProductList(href, productid);
+                                .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
             throw new Error(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
