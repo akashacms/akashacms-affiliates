@@ -682,6 +682,59 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     }
 }
 
+/* This is an interesting idea but in practice doesn't work.  The issue is how to
+ * specify a useful selector as the body of an element.
+ *
+ * This was tried:
+ *
+ *   <affiliate-select template-outer="select-container.html.ejs" template-item="select-item.html.ejs">
+ *   { "productname": /P4460/ }
+ *   </affiliate-select>
+ *
+ * That is, use a Regular Expression to select product names.  But this
+ * just threw a syntax error in JSON.parse, because JSON.parse doesn't
+ * understand regular expressions.  Hardcoding the selector as shown below
+ * did produce the expected result, but it's not useful if we cannot do this
+ * in the code.
+ *
+class AffiliateSelectElement extends mahabhuta.CustomElement {
+    get elementName() { return "affiliate-select"; }
+    async process($element, metadata, dirty) {
+        const outerTemplate =  $element.attr('template-outer');
+        const itemTemplate =  $element.attr('template-item');
+        const clazz  = $element.attr('class');
+        const id = $element.attr('id');
+        const _selector = $element.text();
+
+        if (!outerTemplate) {
+            throw new Error(`affiliate-select no outerTemplate in ${metadata.document.path}`);
+        }
+        if (!itemTemplate) {
+            throw new Error(`affiliate-select no itemTemplate in ${metadata.document.path}`);
+        }
+        if (!_selector) {
+            throw new Error(`affiliate-select no _selector in ${metadata.document.path}`);
+        }
+
+        console.log(`affiliate-select _selector `, _selector);
+
+        // const selector = JSON.parse(_selector);
+        // console.log(`affiliate-select selector `, selector);
+        const products = this.array.options.config.plugin(pluginName)
+                                .select({ "productname": /P4460/ });
+        console.log(`affiliate-select products ${products.length} `);
+        const rendered = [];
+        for (let product of products) {
+            rendered.push(await akasha.partial(this.array.options.config, itemTemplate, product));
+        }
+
+        return await akasha.partial(this.array.options.config, outerTemplate, {
+            class: clazz, id, products: rendered
+        });
+    }
+}
+*/
+
 class AmazonBuyButtonElement extends mahabhuta.CustomElement {
     get elementName() { throw new Error("Use a subclass"); }
     process($element, metadata, dirty) {

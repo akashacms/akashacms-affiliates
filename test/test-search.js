@@ -29,6 +29,19 @@ describe('build site', function() {
         await akasha.cacheSetupComplete(config);
     });
 
+    it('should build site', async function() {
+        this.timeout(75000);
+        let failed = false;
+        let results = await akasha.render(config);
+        for (let result of results) {
+            if (result.error) {
+                failed = true;
+                console.error(result.error);
+            }
+        }
+        assert.isFalse(failed);
+    });
+
 });
 
 describe('find products', function() {
