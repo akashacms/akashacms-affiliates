@@ -187,6 +187,11 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return false;
     }
 
+    // This is called from the Configuration file, telling us
+    // a file from which to load products.  At the time this is
+    // called the caches are not set up.  What we do is to push
+    // the file name into this array, then in onPluginCacheSetup we
+    // step through the array to read the files.
     loadAffiliateProducts(config, yamlFile) {
         this[_plugin_data_files].push(yamlFile);
     }
@@ -325,6 +330,33 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         return this.select({});
     }
 
+    // Construct a productlinks array making sure to synthesize
+    // an entry based on the links and information in
+    // the product object.
+    productLinks(product) {
+        const ret = [];
+        try {
+            const buyURL_p = new URL(product.productbuyurl);
+            const topush = {
+                url: product.productbuyurl,
+                text: buyURL_p.hostname,
+                tooltip: `Buy ${product.productname}`,
+                rel: product.productrel
+            };
+            // If the above executed correctly then we can
+            // push the object.  If something went wrong
+            // we'll instead pop into the catch block.
+            ret.push(topush);
+        } catch (e) {
+            // Something failed, such as productbuyurl
+            // cannot be parsed
+            // IGNORE ERROR
+        }
+        for (let topush of product.productlinks) {
+            ret.push(topush);
+        }
+        return ret;
+    }
 };
 
 function setAmazonAffiliateTag(href, tag) {
@@ -489,13 +521,13 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
 class AffiliateProductContent extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product"; }
     async process($element, metadata, dirty) {
+        const plugin = this.array.options.config.plugin(pluginName);
         const template = $element.attr('template') 
                 ? $element.attr('template')
                 : "affiliate-product.html.ejs";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const data = this.array.options.config.plugin(pluginName)
-                                .getProductData(href, productid);
+        const data = plugin.getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
@@ -511,6 +543,10 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             data.anchorName = data.code;
         }
         // console.log(data);
+        /*
+         * This sequence has been moved into
+         * the productLinks method.
+         *
         const buyurl = data.productbuyurl;
         // console.log(buyurl);
         // data.productbuyurl = undefined;
@@ -527,7 +563,10 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             console.error(`affiliate-product WARNING productbuyurl ${buyurl} invalid for productid ${productid}`);
             data.productbuyurl = buyurl;
         }
+        */
+        data.productlinks = plugin.productLinks(data);
         data.partialBody = $element.html();
+        // The default template has several custom elements
         dirty();
         return akasha.partial(this.array.options.config, template, data);
     }

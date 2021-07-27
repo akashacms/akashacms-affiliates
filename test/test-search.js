@@ -195,6 +195,42 @@ describe('filter products', function() {
     });
 });
 
+describe('Product Links', function() {
+    it('should generate productlinks array', async function() {
+        let found = config.plugin('akashacms-affiliates')
+                            .getProductData('/products.html.md', 'P3-international-P4460-kill-a-watt');
+        assert.isOk(found);
+        assert.isNotArray(found);
+
+        const links = config.plugin('akashacms-affiliates')
+                            .productLinks(found);
+        assert.deepEqual(links, [
+            {
+              url: 'http://www.amazon.com/P3-International-P4460-Electricity-Monitor/dp/B000RGF29Q/ref=sr_1_2?ie=UTF8&amp;qid=1446772041&amp;sr=8-2&amp;keywords=kilowatt+meter&amp;tag=visforvoltage-20',
+              text: 'www.amazon.com',
+              tooltip: 'Buy P3 International P4460 Kill A Watt EZ Electricity Usage Monitor',
+              rel: 'nofollow noskim'
+            },
+            {
+              url: 'http://www.rakuten.com/prod/p3-international-p4460-kill-a-watt-ez-electricity-usage-monitor/204392275.html',
+              rel: 'nofollow',
+              text: 'rakuten.com'
+            },
+            {
+              url: 'http://www.smarthome.com/p3-international-p4460-kill-a-watt-ez.html',
+              rel: 'nofollow',
+              text: 'smarthome.com'
+            },
+            {
+              url: 'http://www.homedepot.com/p/P3-International-Kill-A-Watt-EZ-Meter-P4460/202196388',
+              rel: 'nofollow',
+              text: 'homedepot.com'
+            }
+        ]);
+    });
+});
+
+
 describe('SHUTDOWN', function() {
     it('should close the configuration', async function() {
         this.timeout(75000);
