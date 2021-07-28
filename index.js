@@ -352,8 +352,10 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             // cannot be parsed
             // IGNORE ERROR
         }
-        for (let topush of product.productlinks) {
-            ret.push(topush);
+        if (product.productlinks) {
+            for (let topush of product.productlinks) {
+                ret.push(topush);
+            }
         }
         return ret;
     }
