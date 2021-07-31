@@ -194,6 +194,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     // step through the array to read the files.
     loadAffiliateProducts(config, yamlFile) {
         this[_plugin_data_files].push(yamlFile);
+        return this;
     }
 
     filterProducts(searchFN) {
