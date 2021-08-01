@@ -668,35 +668,17 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         let href = $element.attr('href');
         const isdirtyattr = $element.attr('dirty');
         
-        /* WTF?  The href passed to getProductData is
-         * there to support a document where products are
-         * listed in the metadata.  It does not make sense
-         * to substitute an href if one was not given in
-         * the custom tag.  This substitution is for the
-         * current document, but we do not know if this
-         * document has any products, nor do we know if the
-         * document lists the given document.  It's better
-         * if the user of this custom tag explicitly give
-         * the href if desired.
-         *
-         * In every other custom tag, there is no
-         * substitution for the href value if none is
-         * explicitly given in the custom tag.
-         *
-        if (!href) {
-            href = '/' + metadata.document.renderTo;
-        }
-        */
-
+        // Make sure to not use an href in this search so it will find
+        // the productid wherever it's located
         const data = this.array.options.config.plugin(pluginName)
-                                .getProductData(href, productid);
-        // const data = await getProductData(metadata, this.array.options.config, href, productid);
+                                .getProductData(undefined, productid);
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
-        var productHref = href;
+        // Construct actual href for product, using the anchor.
+        // If no href specified in element, use the relative URL of the current page.
+        var productHref = !href ? ('/' + metadata.document.renderTo) : href;
         if (data.anchorName) productHref += '#' + data.anchorName;
-        const productdescription = data.productdescription;
 
         if (type === "card") {
             // The templates for this which I've reviewed are not worthy of
@@ -710,7 +692,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 productid: productid, href: productHref,
                 title: data.productname, thumburl: data.productimgurl,
                 productbuyurl: data.productbuyurl,
-                productdescription,
+                productdescription: data.productdescription,
                 content: $element.contents(),
                 float: float, docaption: docaption,
                 width: width, height: height,
