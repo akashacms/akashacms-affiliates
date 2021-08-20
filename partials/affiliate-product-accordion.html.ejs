@@ -12,10 +12,11 @@ for (product of products) { %>
             if (!isfirst) { %> collapsed="true" <% } 
             %> >
 
-        <affiliate-product productid="<%= product.code %>" 
+        <%- include('affiliate-product.html.ejs', product) %>
+        <!-- affiliate-product productid="<%= product.code %>" 
             <% if (typeof producthref !== 'undefined') {
                 %> href="<%= producthref %>" <%
-            } %> ></affiliate-product>
+            } %> ></affiliate-product -->
        
     </collapse-item>
 

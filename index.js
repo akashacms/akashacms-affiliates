@@ -50,6 +50,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         this[_plugin_options] = options;
         options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
+        config.addLayoutsDir(path.join(__dirname, 'layouts'));
         config.addAssetsDir({
             src: path.join(__dirname, 'buy-images'),
             dest: 'vendor/@akashacms/plugin-affiliates'
@@ -527,7 +528,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         const plugin = this.array.options.config.plugin(pluginName);
         const template = $element.attr('template') 
                 ? $element.attr('template')
-                : "affiliate-product.html.ejs";
+                : "affiliate-product.html.njk";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
         const data = plugin.getProductData(href, productid);
@@ -546,27 +547,6 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             data.anchorName = data.code;
         }
         // console.log(data);
-        /*
-         * This sequence has been moved into
-         * the productLinks method.
-         *
-        const buyurl = data.productbuyurl;
-        // console.log(buyurl);
-        // data.productbuyurl = undefined;
-        try {
-            const buyURL_p = new URL(buyurl);
-            // Push productbuyurl to productlinks
-            data.productlinks.unshift({
-                url: buyurl,
-                text: buyURL_p.hostname,
-                tooltip: `Buy ${data.productname}`,
-                rel: data.productrel
-            });
-        } catch (e) {
-            console.error(`affiliate-product WARNING productbuyurl ${buyurl} invalid for productid ${productid}`);
-            data.productbuyurl = buyurl;
-        }
-        */
         data.productlinks = plugin.productLinks(data);
         data.partialBody = $element.html();
         // The default template has several custom elements
@@ -779,12 +759,15 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
             throw new Error(`${this.elementName()}: No ASIN found in ${metadata.document.path}`);
         }
 
+        // console.log(`AmazonBuyButtonElement ${asin} ${this.countryCode} ${affcode} ${template}`);
+
         if (affcode && template) {
             return akasha.partial(this.array.options.config, template, {
                     targetBlank: target ? (` target="${target}"`) : "",
                     formDisplay: display ? (` style="display: ${display}" !important;`) : "",
                     ASIN: asin,
-                    affcode: affcode
+                    affcode: affcode,
+                    countryCode: this.countryCode
                 });
         } else {
             return Promise.resolve("");
@@ -800,7 +783,8 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
 
 class AmazonCABuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-ca-buy"; }
-    get defaultTemplate() { return "amazon-ca-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-ca-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "ca"; }
 }
 
@@ -808,37 +792,43 @@ class AmazonCABuyButtonElement extends AmazonBuyButtonElement {
 
 class AmazonJPBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-co-jp-buy"; }
-    get defaultTemplate() { return "amazon-co-jp-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-co-jp-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "co-jp"; }
 }
 
 class AmazonUKBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-co-uk-buy"; }
-    get defaultTemplate() { return "amazon-co-uk-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-co-uk-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "co-uk"; }
 }
 
 class AmazonUSABuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-com-buy"; }
-    get defaultTemplate() { return "amazon-com-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-com-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "com"; }
 }
 
 class AmazonDEBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-de-buy"; }
-    get defaultTemplate() { return "amazon-de-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-de-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "de"; }
 }
 
 class AmazonESBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-es-buy"; }
-    get defaultTemplate() { return "amazon-es-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-es-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "es"; }
 }
 
 class AmazonFRBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-fr-buy"; }
-    get defaultTemplate() { return "amazon-fr-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-fr-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "fr"; }
 }
 
@@ -846,7 +836,8 @@ class AmazonFRBuyButtonElement extends AmazonBuyButtonElement {
 
 class AmazonITBuyButtonElement extends AmazonBuyButtonElement {
     get elementName() { return "amazon-it-buy"; }
-    get defaultTemplate() { return "amazon-it-buy.html.ejs"; }
+    // get defaultTemplate() { return "amazon-it-buy.html.ejs"; }
+    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
     get countryCode() { return "it"; }
 }
 

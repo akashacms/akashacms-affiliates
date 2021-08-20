@@ -1,0 +1,50 @@
+
+
+{% macro aff_amzn_buy_button(ASIN, countryCode, display, target) %}
+{%- if ASIN and countryCode -%}
+{%- if target -%}
+{%- set targetBlank = 'target="TARGET"' | replace('TARGET', target) -%}
+{%- else -%}
+{%- set targetBlank = '' -%}
+{%- endif -%}
+{%- if display -%}
+{%- set formDisplay = 'style="display: ${DISPLAY}" !important;' | replace('DISPLAY', display) -%}
+{%- else -%}
+{%- set formDisplay = '' -%}
+{%- endif -%}
+{%- set affcode = config.plugin('akashacms-affiliates').amazonCodeForCountry(config, countryCode) -%}
+{%- include "amazon-buy-button.html.njk" -%}
+{%- endif %}
+{% endmacro %}
+
+{% macro aff_amzn_ca_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "ca", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_co_jp_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "co-jp", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_co_uk_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "co-uk", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_com_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "com", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_de_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "de", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_es_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "es", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_fr_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "fr", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_amzn_it_button(asin, display, target) -%}
+{{- aff_amzn_buy_button(asin, "it", display, target) -}}
+{%- endmacro %}

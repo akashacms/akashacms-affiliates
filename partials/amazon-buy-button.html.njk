@@ -1,0 +1,59 @@
+<form method="GET" 
+        {% if countryCode === "ca" %}action="https://www.amazon.ca/gp/aws/cart/add.html"
+        {% elif countryCode === "co-jp" %}action="https://www.amazon.co.jp/gp/aws/cart/add.html"
+        {% elif countryCode === "co-uk" %}action="https://www.amazon.co.uk/exec/obidos/dt/assoc/handle-buy-box={{ ASIN }}"
+        {% elif countryCode === "com" %}action="https://www.amazon.com/gp/aws/cart/add.html"
+        {% elif countryCode === "de" %}action="https://www.amazon.de/exec/obidos/dt/assoc/handle-buy-box={{ ASIN }}"
+        {% elif countryCode === "es" %}action="https://www.amazon.es/exec/obidos/dt/assoc/handle-buy-box={{ ASIN }}"
+        {% elif countryCode === "fr" %}action="https://www.amazon.fr/exec/obidos/dt/assoc/handle-buy-box={{ ASIN }}"
+        {% elif countryCode === "it" %}action="https://www.amazon.it/exec/obidos/dt/assoc/handle-buy-box={{ ASIN }}"
+        {% endif %}
+        {% if targetBlank %}{{ targetBlank }}{% endif %}
+        {% if formDisplay %}{{ formDisplay }}{% endif %}
+        >
+{% if countryCode === "ca" -%}
+    <input type="hidden" name="AssociateTag" value="{{ affcode }}"/>
+    <input type="hidden" name="ASIN.1" value="{{ ASIN }}"/>
+    <input type="hidden" name="Quantity.1" value="1"/>
+    <input type="image" name="add" value="Buy from Amazon.ca" border="0" alt="Buy from Amazon.ca"
+        src="/vendor/@akashacms/plugin-affiliates/amazon-ca.gif">
+{% elif countryCode === "co-jp" -%}
+    <input type="hidden" name="AssociateTag" value="{{ affcode }}"/>
+    <input type="hidden" name="ASIN.1" value="{{ ASIN }}"/>
+    <input type="hidden" name="Quantity.1" value="1"/>
+    <input type="image" name="submit.add-to-cart" alt="buy in amazon.co.jp"
+        src= "https://rcm-images.amazon.com/images/G/09/extranet/associates/buttons/remote-buy-jp1.gif">
+{% elif countryCode === "co-uk" -%}
+    <input type="hidden" name="AssociateTag" value="{{ affcode }}"/>
+    <input type="hidden" name="asin.{{ ASIN }}" value="1"/>
+    <input type="hidden" name="tag-value" value="{{ affcode }}">
+    <input type="image" name="submit.add-to-cart" value="Buy from Amazon.co.uk" border="0" alt="Buy from Amazon.co.uk"
+        src="/vendor/@akashacms/plugin-affiliates/amazon-co-uk.gif">
+{% elif countryCode === "com" -%}
+    <input type="hidden" name="AssociateTag" value="{{ affcode }}"/>
+    <input type="hidden" name="ASIN.1" value="{{ ASIN }}"/>
+    <input type="hidden" name="Quantity.1" value="1"/>
+    <input type="image" name="add" value="Buy from Amazon.com" border="0" alt="Buy from Amazon.com"
+        src="/vendor/@akashacms/plugin-affiliates/amazon-com.gif">
+{% elif countryCode === "de" -%}
+    <input type="hidden" name="AssociateTag" value="{{ affcode }}"/>
+    <input type="hidden" name="asin.{{ ASIN }}" value="1"/>
+    <input type="hidden" name="tag-value" value="{{ affcode }}">
+    <input type="submit" name="submit.add-to-cart" value="bei Amazon.de kaufen">
+{% elif countryCode === "es" -%}
+    <input type="hidden" name="asin.{{ ASIN }}" value="1"/>
+    <input type="hidden" name="{{ ASIN }}" value="1">
+    <input type="hidden" name="tag-value" value="{{ affcode }}">
+    <input type="image" name="submit.add-to-cart" value="Comprar en Amazon.es" border="0" alt="Comprar en Amazon.es"
+        src="https://images.amazon.com/images/G/30/associates/buttons/buy_4">
+{% elif countryCode === "fr" -%}
+    <input type="hidden" name="AssociateTag" value="{{ affcode }}"/>
+    <input type="hidden" name="asin.{{ ASIN }}" value="1"/>
+    <input type="hidden" name="tag-value" value="{{ affcode }}">
+    <input type="submit" name="submit.add-to-cart" value="Achetez chez Amazon.fr">
+{% elif countryCode === "it" -%}
+    <input type="hidden" name="asin.${{ ASIN }}" value="1">
+    <input type="hidden" name="tag-value" value="{{ affcode }}">
+    <input type="image" name="submit.add-to-cart" value="Compra su Amazon.it" border="0" alt="Compra su Amazon.it" src="https://images.amazon.com/images/G/29/associates/buttons/buy5.gif">
+{%- endif -%}
+</form>

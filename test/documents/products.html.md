@@ -1,6 +1,7 @@
 ---
 title: 'Understand home solar power system design with this detailed walk-through'
 publicationDate: November 30, 2015
+layout: default.html.ejs
 teaser: "Pairing electric cars with solar panels (or wind turbines) is attractive to everyone, meaning we commonly see them pictured together.  Clean power for clean cars makes so much sense.  But implementing that idea, putting solar panels on your own home, can be daunting.  Several companies exist offering to simplify the process, but it's always better to be the well informed consumer so you can better negotiate with the sales-person."
 from: https://longtailpipe.com/ebooks/green-transportation-guide-buying-owning-charging-plug-in-vehicles-of-all-kinds/gasoline-electricity-and-the-energy-to-move-transportation-systems/detailed-walk-through-of-home-solar-power-system-design/
 

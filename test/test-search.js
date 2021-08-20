@@ -19,6 +19,15 @@ describe('build site', function() {
             recognizeCDATA: true,
             decodeEntities: true
         });
+        config.plugin("akashacms-affiliates")
+            .amazonAffiliateCode(config, 'ca', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'co-jp', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'co-uk', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'com', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'de', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'es', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'fr', 'fake-affiliate-code')
+            .amazonAffiliateCode(config, 'it', 'fake-affiliate-code');
         config.plugin('akashacms-affiliates')
             .loadAffiliateProducts(config, 'test-products.yml');
         config.prepare();
@@ -228,6 +237,243 @@ describe('Product Links', function() {
             }
         ]);
     });
+});
+
+describe('AMZN Buy Buttons', function() {
+    let html;
+    let $;
+
+    before(async function() {
+        let result = await akasha.readRenderedFile(config, 'buy-buttons.html');
+        html = result.html;
+        $ = result.$;
+    });
+
+    it('should correctly read buy-buttons.html', function() {
+        assert.exists(html, 'result exists');
+        assert.isString(html, 'result isString');
+    });
+
+    it('should generate amazon.ca buy buttons with element', async function() {
+        assert.equal($('body #elem-ca-buy').length, 1);
+        assert.equal($('body #elem-ca-buy form').attr('action'),
+                            'https://www.amazon.ca/gp/aws/cart/add.html');
+
+        assert.equal($('body #elem-ca-buy form input[name="AssociateTag"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-ca-buy form input[name="ASIN.1"]').attr('value'),
+                            'B06Y3KCWD7');
+        assert.equal($('body #elem-ca-buy form input[name="Quantity.1"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-ca-buy form input[type="image"]').attr('src'),
+                            '/vendor/@akashacms/plugin-affiliates/amazon-ca.gif');
+    });
+
+    it('should generate amazon.ca buy buttons with macro', async function() {
+        assert.equal($('body #macro-ca-buy').length, 1);
+        assert.equal($('body #macro-ca-buy form').attr('action'),
+                            'https://www.amazon.ca/gp/aws/cart/add.html');
+
+        assert.equal($('body #macro-ca-buy form input[name="AssociateTag"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-ca-buy form input[name="ASIN.1"]').attr('value'),
+                            'B06Y3KCWD7');
+        assert.equal($('body #macro-ca-buy form input[name="Quantity.1"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-ca-buy form input[type="image"]').attr('src'),
+                            '/vendor/@akashacms/plugin-affiliates/amazon-ca.gif');
+    });
+
+    it('should generate amazon.co-uk buy buttons with element', async function() {
+        assert.equal($('body #elem-co-uk-buy').length, 1);
+        assert.equal($('body #elem-co-uk-buy form').attr('action'),
+                            'https://www.amazon.co.uk/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #elem-co-uk-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-co-uk-buy form input[name="asin.B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-co-uk-buy form input[type="image"]').attr('src'),
+                            '/vendor/@akashacms/plugin-affiliates/amazon-co-uk.gif');
+    });
+
+    it('should generate amazon.co-uk buy buttons with macro', async function() {
+        assert.equal($('body #macro-co-uk-buy').length, 1);
+        assert.equal($('body #macro-co-uk-buy form').attr('action'),
+                            'https://www.amazon.co.uk/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #macro-co-uk-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-co-uk-buy form input[name="asin.B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-co-uk-buy form input[type="image"]').attr('src'),
+                            '/vendor/@akashacms/plugin-affiliates/amazon-co-uk.gif');
+    });
+
+    it('should generate amazon.co-jp buy buttons with element', async function() {
+        assert.equal($('body #elem-co-jp-buy').length, 1);
+        assert.equal($('body #elem-co-jp-buy form').attr('action'),
+                            'https://www.amazon.co.jp/gp/aws/cart/add.html');
+
+        assert.equal($('body #elem-co-jp-buy form input[name="AssociateTag"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-co-jp-buy form input[name="ASIN.1"]').attr('value'),
+                            'B06Y3KCWD7');
+        assert.equal($('body #elem-co-jp-buy form input[name="Quantity.1"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-co-jp-buy form input[type="image"]').attr('src'),
+                            'https://rcm-images.amazon.com/images/G/09/extranet/associates/buttons/remote-buy-jp1.gif');
+    });
+
+    it('should generate amazon.co-jp buy buttons with macro', async function() {
+        assert.equal($('body #macro-co-jp-buy').length, 1);
+        assert.equal($('body #macro-co-jp-buy form').attr('action'),
+                            'https://www.amazon.co.jp/gp/aws/cart/add.html');
+
+        assert.equal($('body #macro-co-jp-buy form input[name="AssociateTag"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-co-jp-buy form input[name="ASIN.1"]').attr('value'),
+                            'B06Y3KCWD7');
+        assert.equal($('body #macro-co-jp-buy form input[name="Quantity.1"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-co-jp-buy form input[type="image"]').attr('src'),
+                            'https://rcm-images.amazon.com/images/G/09/extranet/associates/buttons/remote-buy-jp1.gif');
+    });
+
+    it('should generate amazon.com buy buttons with element', async function() {
+        assert.equal($('body #elem-com-buy').length, 1);
+        assert.equal($('body #elem-com-buy form').attr('action'),
+                            'https://www.amazon.com/gp/aws/cart/add.html');
+
+        assert.equal($('body #elem-com-buy form input[name="AssociateTag"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-com-buy form input[name="ASIN.1"]').attr('value'),
+                            'B06Y3KCWD7');
+        assert.equal($('body #elem-com-buy form input[name="Quantity.1"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-com-buy form input[type="image"]').attr('src'),
+                            '/vendor/@akashacms/plugin-affiliates/amazon-com.gif');
+    });
+
+    it('should generate amazon.com buy buttons with macro', async function() {
+        assert.equal($('body #macro-com-buy').length, 1);
+        assert.equal($('body #macro-com-buy form').attr('action'),
+                            'https://www.amazon.com/gp/aws/cart/add.html');
+
+        assert.equal($('body #macro-com-buy form input[name="AssociateTag"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-com-buy form input[name="ASIN.1"]').attr('value'),
+                            'B06Y3KCWD7');
+        assert.equal($('body #macro-com-buy form input[name="Quantity.1"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-com-buy form input[type="image"]').attr('src'),
+                            '/vendor/@akashacms/plugin-affiliates/amazon-com.gif');
+    });
+
+    it('should generate amazon.de buy buttons with element', async function() {
+        assert.equal($('body #elem-de-buy').length, 1);
+        assert.equal($('body #elem-de-buy form').attr('action'),
+                            'https://www.amazon.de/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #elem-de-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-de-buy form input[name="asin.B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-de-buy form input[type="submit"]').attr('value'),
+                            'bei Amazon.de kaufen');
+    });
+
+    it('should generate amazon.de buy buttons with macro', async function() {
+        assert.equal($('body #macro-de-buy').length, 1);
+        assert.equal($('body #macro-de-buy form').attr('action'),
+                            'https://www.amazon.de/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #macro-de-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-de-buy form input[name="asin.B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-de-buy form input[type="submit"]').attr('value'),
+                            'bei Amazon.de kaufen');
+    });
+
+    it('should generate amazon.es buy buttons with element', async function() {
+        assert.equal($('body #elem-es-buy').length, 1);
+        assert.equal($('body #elem-es-buy form').attr('action'),
+                            'https://www.amazon.es/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #elem-es-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-es-buy form input[name="B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-es-buy form input[type="image"]').attr('src'),
+                            'https://images.amazon.com/images/G/30/associates/buttons/buy_4');
+    });
+
+    it('should generate amazon.es buy buttons with macro', async function() {
+        assert.equal($('body #macro-es-buy').length, 1);
+        assert.equal($('body #macro-es-buy form').attr('action'),
+                            'https://www.amazon.es/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #macro-es-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-es-buy form input[name="B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-es-buy form input[type="image"]').attr('src'),
+                            'https://images.amazon.com/images/G/30/associates/buttons/buy_4');
+    });
+
+    it('should generate amazon.fr buy buttons with element', async function() {
+        assert.equal($('body #elem-fr-buy').length, 1);
+        assert.equal($('body #elem-fr-buy form').attr('action'),
+                            'https://www.amazon.fr/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #elem-fr-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-fr-buy form input[name="asin.B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-fr-buy form input[type="submit"]').attr('value'),
+                            'Achetez chez Amazon.fr');
+    });
+
+    it('should generate amazon.fr buy buttons with macro', async function() {
+        assert.equal($('body #macro-fr-buy').length, 1);
+        assert.equal($('body #macro-fr-buy form').attr('action'),
+                            'https://www.amazon.fr/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #macro-fr-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-fr-buy form input[name="asin.B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-fr-buy form input[type="submit"]').attr('value'),
+                            'Achetez chez Amazon.fr');
+    });
+
+    it('should generate amazon.it buy buttons with element', async function() {
+        assert.equal($('body #elem-it-buy').length, 1);
+        assert.equal($('body #elem-it-buy form').attr('action'),
+                            'https://www.amazon.it/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #elem-it-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #elem-it-buy form input[name="asin.$B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #elem-it-buy form input[type="image"]').attr('src'),
+                            'https://images.amazon.com/images/G/29/associates/buttons/buy5.gif');
+    });
+
+    it('should generate amazon.it buy buttons with macro', async function() {
+        assert.equal($('body #macro-it-buy').length, 1);
+        assert.equal($('body #macro-it-buy form').attr('action'),
+                            'https://www.amazon.it/exec/obidos/dt/assoc/handle-buy-box=B06Y3KCWD7');
+
+        assert.equal($('body #macro-it-buy form input[name="tag-value"]').attr('value'),
+                            'fake-affiliate-code');
+        assert.equal($('body #macro-it-buy form input[name="asin.$B06Y3KCWD7"]').attr('value'),
+                            '1');
+        assert.equal($('body #macro-it-buy form input[type="image"]').attr('src'),
+                            'https://images.amazon.com/images/G/29/associates/buttons/buy5.gif');
+    });
+
 });
 
 

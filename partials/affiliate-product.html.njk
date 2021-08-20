@@ -1,0 +1,106 @@
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
+
+<div class="affiliateproduct" style="clear: both;" 
+        {% if anchorName %}id="{{ anchorName }}"{% endif %} >
+    {% if productimgurl  %}
+        <card-block additional-classes="float-right"
+            style="width: 150px;"
+            card-image-top="{{ productimgurl | safe }}"
+            card-image-alt="Buy {{ productname | safe }}"
+            card-image-style="width: 100%;">
+            {% if gallery %}
+                <button-launched-modal id="{{ anchorName | safe }}-modal-button"
+                    title="{{ productname | safe }}"
+                    button-text="View larger image"
+                    additional-classes="modal-dialog-centered btn-small">
+                    <carousel-container id="{{ anchorName | safe }}-modal-carousel">
+                        <carousel-item href="{{ productimgurl | safe }}" isactive="true"/>
+                        {% for item in gallery %}
+                            <carousel-item href="{{ item.url | safe }}"/>
+                        {% endfor %}
+                    </carousel-container>
+                </button-launched-modal>
+            {% else %}
+                <button-launched-modal id="{{ anchorName | safe }}-modal-button"
+                    title="{{ productname | safe }}"
+                    button-text="View larger image"
+                    additional-classes="modal-dialog-centered btn-small">
+                    <a class="affproductname" href="{{ productbuyurl | safe }}"
+                        {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
+                    <img src="{{ productimgurl | safe }}" alt="Buy {{ productname | safe }}"/>
+                    </a>
+                </button-launched-modal>
+            {% endif %}
+        </card-block>
+    {% endif %}
+    <div class="productdescription">
+        <h2 class="infobox-title">
+            {% if productbuyurl %}
+                <a class="affproductname" href="{{ productbuyurl | safe }}" 
+                        {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
+                    {{ productname | safe }}</a>
+            {% else %}
+                {{ productname | safe }}
+            {% endif %}
+        </h2>
+        {% if productdescription %}{{ productdescription }}{% endif %}
+        {% if partialBody %}{{ partialBody }}{% endif %}
+    </div>
+
+    {% if productattributes %}
+        <ul>
+        {% for productattr in productattributes %}
+            <li>{{ productattr | safe }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <card-block id="{{ code | safe }}-buy-block" header="Buy {{ productname | safe }}">
+    {% if productamzn %}
+        {% for amzn in productamzn %}
+            {% if amzn and amzn.asin %}
+                {#
+                 In testing, Canada buy buttons don't seem to work.  The user
+                 ends up on amazon.ca with the correct product information but
+                 their shopping card doesn't fill and the site says the product
+                 is unavailable.
+                if (amzn.countryCode === "ca") {
+                    %><amazon-ca-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
+                } else
+                 For the following the only country code which is tested is
+                 "com" meaning USA.
+                #}
+                {% if amzn.countryCode === 'co-jp' %}
+                    {% ak_affiliates.aff_amzn_co_jp_button(amzn.asin) %}
+                {% elif amzn.countryCode === 'co-uk' %}
+                    {% ak_affiliates.aff_amzn_co_uk_button(amzn.asin) %}
+                {% elif amzn.countryCode === 'com' %}
+                    {% ak_affiliates.aff_amzn_com_button(amzn.asin) %}
+                {% elif amzn.countryCode === 'de' %}
+                    {% ak_affiliates.aff_amzn_de_button(amzn.asin) %}
+                {% elif amzn.countryCode === 'es' %}
+                    {% ak_affiliates.aff_amzn_es_button(amzn.asin) %}
+                {% elif amzn.countryCode === 'fr' %}
+                    {% ak_affiliates.aff_amzn_fr_button(amzn.asin) %}
+                {% elif amzn.countryCode === 'it' %}
+                    {% ak_affiliates.aff_amzn_it_button(amzn.asin) %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% if productlinks %}
+        <ul class="list-group list-group-flush">
+        {% for link in productlinks %}
+                <li class="list-group-item">
+                <a href="{{ link.url | safe }}" rel="{{ link.rel | safe }}"
+                    {% if link.tooltip %}data-toggle="tooltip" title="{{ link.tooltip | safe }}"{% endif %} >
+                    {{ link.text | safe }}</a>
+                </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    </card-block>
+
+    <div class="affiliate-product-sponsored">Sponsored</div>
+
+</div>
