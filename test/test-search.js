@@ -13,7 +13,8 @@ describe('build site', function() {
         config.addLayoutsDir('layouts')
             .addDocumentsDir('documents')
             .addPartialsDir('partials');
-        config.use(require('../index.js'));
+        config.use(require('../index.js'))
+            .use(require('@akashacms/theme-bootstrap'));
         config.setMahabhutaConfig({
             recognizeSelfClosing: true,
             recognizeCDATA: true,
@@ -476,6 +477,37 @@ describe('AMZN Buy Buttons', function() {
 
 });
 
+describe('Affiliate Product', function() {
+    let html;
+    let $;
+
+    before(async function() {
+        let result = await akasha.readRenderedFile(config, 'products.html');
+        html = result.html;
+        $ = result.$;
+    });
+
+    it('should correctly read products.html', function() {
+        assert.exists(html, 'result exists');
+        assert.isString(html, 'result isString');
+    });
+
+    it('should render affiliate-product', async function() {
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor').length, 1);
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-img-top').attr('src'),
+                    'https://images-na.ssl-images-amazon.com/images/I/71Lx99WgYdL._SL1200_.jpg');
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body button[data-target="#efergy-elite-wireless-electricity-monitor-modal-button"]').length, 1);
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button').length, 1);
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button .affproductname').attr('href'), 'https://www.amazon.com/Efergy-Elite-Wireless-Electricity-Monitor/dp/B003XOXU02/ref=sr_1_16?tag=fake-affiliate-code');
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button img').attr('src'), 'https://images-na.ssl-images-amazon.com/images/I/71Lx99WgYdL._SL1200_.jpg');
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .productdescription').length, 1);
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor .productdescription .affproductname').attr('href'), 'https://www.amazon.com/Efergy-Elite-Wireless-Electricity-Monitor/dp/B003XOXU02/ref=sr_1_16?tag=fake-affiliate-code');
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block').length, 1);
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block form[action="https://www.amazon.com/gp/aws/cart/add.html"]').length, 1);
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block form[action="https://www.amazon.com/gp/aws/cart/add.html"] input[name="ASIN.1"]').attr('value'), 'B003XOXU02');
+        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block .list-group .list-group-item').length, 4);
+    });
+});
 
 describe('SHUTDOWN', function() {
     it('should close the configuration', async function() {

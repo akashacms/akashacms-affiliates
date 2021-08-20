@@ -71,19 +71,19 @@
                  "com" meaning USA.
                 #}
                 {% if amzn.countryCode === 'co-jp' %}
-                    {% ak_affiliates.aff_amzn_co_jp_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_co_jp_button(amzn.asin) }}
                 {% elif amzn.countryCode === 'co-uk' %}
-                    {% ak_affiliates.aff_amzn_co_uk_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_co_uk_button(amzn.asin) }}
                 {% elif amzn.countryCode === 'com' %}
-                    {% ak_affiliates.aff_amzn_com_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_com_button(amzn.asin) }}
                 {% elif amzn.countryCode === 'de' %}
-                    {% ak_affiliates.aff_amzn_de_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_de_button(amzn.asin) }}
                 {% elif amzn.countryCode === 'es' %}
-                    {% ak_affiliates.aff_amzn_es_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_es_button(amzn.asin) }}
                 {% elif amzn.countryCode === 'fr' %}
-                    {% ak_affiliates.aff_amzn_fr_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_fr_button(amzn.asin) }}
                 {% elif amzn.countryCode === 'it' %}
-                    {% ak_affiliates.aff_amzn_it_button(amzn.asin) %}
+                    {{ ak_affiliates.aff_amzn_it_button(amzn.asin) }}
                 {% endif %}
             {% endif %}
         {% endfor %}
