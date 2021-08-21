@@ -56,9 +56,9 @@
     {% endif %}
 
     <card-block id="{{ code | safe }}-buy-block" header="Buy {{ productname | safe }}">
-    {% if productamzn %}
-        {% for amzn in productamzn %}
-            {% if amzn and amzn.asin %}
+    {% if productamzn -%}
+        {% for amzn in productamzn -%}
+            {% if amzn and amzn.asin -%}
                 {#
                  In testing, Canada buy buttons don't seem to work.  The user
                  ends up on amazon.ca with the correct product information but
@@ -70,35 +70,35 @@
                  For the following the only country code which is tested is
                  "com" meaning USA.
                 #}
-                {% if amzn.countryCode === 'co-jp' %}
-                    {{ ak_affiliates.aff_amzn_co_jp_button(amzn.asin) }}
-                {% elif amzn.countryCode === 'co-uk' %}
-                    {{ ak_affiliates.aff_amzn_co_uk_button(amzn.asin) }}
-                {% elif amzn.countryCode === 'com' %}
-                    {{ ak_affiliates.aff_amzn_com_button(amzn.asin) }}
-                {% elif amzn.countryCode === 'de' %}
-                    {{ ak_affiliates.aff_amzn_de_button(amzn.asin) }}
-                {% elif amzn.countryCode === 'es' %}
-                    {{ ak_affiliates.aff_amzn_es_button(amzn.asin) }}
-                {% elif amzn.countryCode === 'fr' %}
-                    {{ ak_affiliates.aff_amzn_fr_button(amzn.asin) }}
-                {% elif amzn.countryCode === 'it' %}
-                    {{ ak_affiliates.aff_amzn_it_button(amzn.asin) }}
-                {% endif %}
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-    {% if productlinks %}
+                {% if amzn.countryCode === 'co-jp' -%}
+                    {{- ak_affiliates.aff_amzn_co_jp_button(amzn.asin) -}}
+                {%- elif amzn.countryCode === 'co-uk' -%}
+                    {{- ak_affiliates.aff_amzn_co_uk_button(amzn.asin) -}}
+                {%- elif amzn.countryCode === 'com' -%}
+                    {{- ak_affiliates.aff_amzn_com_button(amzn.asin) -}}
+                {%- elif amzn.countryCode === 'de' -%}
+                    {{- ak_affiliates.aff_amzn_de_button(amzn.asin) -}}
+                {%- elif amzn.countryCode === 'es' -%}
+                    {{- ak_affiliates.aff_amzn_es_button(amzn.asin) -}}
+                {%- elif amzn.countryCode === 'fr' -%}
+                    {{- ak_affiliates.aff_amzn_fr_button(amzn.asin) -}}
+                {%- elif amzn.countryCode === 'it' -%}
+                    {{- ak_affiliates.aff_amzn_it_button(amzn.asin) -}}
+                {%- endif -%}
+            {%- endif %}
+        {%- endfor %}
+    {%- endif %}
+    {% if productlinks -%}
         <ul class="list-group list-group-flush">
-        {% for link in productlinks %}
+        {% for link in productlinks -%}
                 <li class="list-group-item">
                 <a href="{{ link.url | safe }}" rel="{{ link.rel | safe }}"
                     {% if link.tooltip %}data-toggle="tooltip" title="{{ link.tooltip | safe }}"{% endif %} >
                     {{ link.text | safe }}</a>
                 </li>
-        {% endfor %}
+        {%- endfor %}
         </ul>
-    {% endif %}
+    {%- endif %}
     </card-block>
 
     <div class="affiliate-product-sponsored">Sponsored</div>
