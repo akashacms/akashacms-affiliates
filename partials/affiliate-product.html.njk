@@ -5,25 +5,20 @@
         {% if anchorName %}id="{{ anchorName }}"{% endif %} >
     {% if productimgurl  %}
         {% call ak_bootstrap.card_block(additionalClasses="float-right", style="width: 150px;", cardImageTop=productimgurl, cardImageAlt="Buy "+ productname, cardImageStyle="width: 100%;") %}
-            {% if gallery %}
-                <button-launched-modal id="{{ anchorName | safe }}-modal-button"
-                    title="{{ productname | safe }}"
-                    button-text="View larger image"
-                    additional-classes="modal-dialog-centered btn-small">
+            {%- call ak_bootstrap.button_launched_modal(id=anchorName + "-modal-button",
+                        title=productname,
+                        buttonText="View larger image",
+                        modelAdditionalClasses="modal-dialog-centered btn-small") -%}
+                {% if gallery %}
                     {%- call ak_affiliates.aff_image_gallery(id=anchorName + "-modal-carousel", productimgurl=productimgurl, gallery=gallery) -%}
                     {%- endcall -%}
-                </button-launched-modal>
-            {% else %}
-                <button-launched-modal id="{{ anchorName | safe }}-modal-button"
-                    title="{{ productname | safe }}"
-                    button-text="View larger image"
-                    additional-classes="modal-dialog-centered btn-small">
+                {% else %}
                     <a class="affproductname" href="{{ productbuyurl | safe }}"
                         {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
                     <img src="{{ productimgurl | safe }}" alt="Buy {{ productname | safe }}"/>
                     </a>
-                </button-launched-modal>
-            {% endif %}
+                {% endif %}
+            {%- endcall -%}
         {% endcall %}
     {% endif %}
     <div class="productdescription">
