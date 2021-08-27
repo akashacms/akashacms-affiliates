@@ -48,7 +48,8 @@
         </ul>
     {% endif %}
 
-    <card-block id="{{ code | safe }}-buy-block" header="Buy {{ productname | safe }}">
+    {% call ak_bootstrap.card_block(id=code + "-buy-block", header="Buy " + productname) %}
+
     {% if productamzn -%}
         {% for amzn in productamzn -%}
             {% if amzn and amzn.asin -%}
@@ -92,7 +93,7 @@
         {%- endfor %}
         </ul>
     {%- endif %}
-    </card-block>
+    {% endcall %}
 
     <div class="affiliate-product-sponsored">Sponsored</div>
 
