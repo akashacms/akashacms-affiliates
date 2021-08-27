@@ -1,4 +1,15 @@
+{% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
 
+{% macro aff_image_gallery(id, productimgurl, gallery) -%}
+    {% call ak_bootstrap.carousel_container(id=id) -%}
+        {% call ak_bootstrap.carousel_item(href=productimgurl, isactive="true") -%}
+        {%- endcall %}
+        {% for item in gallery -%}
+            {% call ak_bootstrap.carousel_item(href=item.url) -%}
+            {%- endcall %}
+        {%- endfor %}
+    {%- endcall %}
+{%- endmacro %}
 
 {% macro aff_amzn_buy_button(ASIN, countryCode, display, target) %}
 {%- if ASIN and countryCode -%}

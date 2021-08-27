@@ -1,24 +1,17 @@
 {% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
+{% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
 
 <div class="affiliateproduct" style="clear: both;" 
         {% if anchorName %}id="{{ anchorName }}"{% endif %} >
     {% if productimgurl  %}
-        <card-block additional-classes="float-right"
-            style="width: 150px;"
-            card-image-top="{{ productimgurl | safe }}"
-            card-image-alt="Buy {{ productname | safe }}"
-            card-image-style="width: 100%;">
+        {% call ak_bootstrap.card_block(additionalClasses="float-right", style="width: 150px;", cardImageTop=productimgurl, cardImageAlt="Buy "+ productname, cardImageStyle="width: 100%;") %}
             {% if gallery %}
                 <button-launched-modal id="{{ anchorName | safe }}-modal-button"
                     title="{{ productname | safe }}"
                     button-text="View larger image"
                     additional-classes="modal-dialog-centered btn-small">
-                    <carousel-container id="{{ anchorName | safe }}-modal-carousel">
-                        <carousel-item href="{{ productimgurl | safe }}" isactive="true"/>
-                        {% for item in gallery %}
-                            <carousel-item href="{{ item.url | safe }}"/>
-                        {% endfor %}
-                    </carousel-container>
+                    {%- call ak_affiliates.aff_image_gallery(id=anchorName + "-modal-carousel", productimgurl=productimgurl, gallery=gallery) -%}
+                    {%- endcall -%}
                 </button-launched-modal>
             {% else %}
                 <button-launched-modal id="{{ anchorName | safe }}-modal-button"
@@ -31,12 +24,12 @@
                     </a>
                 </button-launched-modal>
             {% endif %}
-        </card-block>
+        {% endcall %}
     {% endif %}
     <div class="productdescription">
         <h2 class="infobox-title">
             {% if productbuyurl %}
-                <a class="affproductname" href="{{ productbuyurl | safe }}" 
+                <a class="affproductname" href="{{ productbuyurl }}" 
                         {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
                     {{ productname | safe }}</a>
             {% else %}

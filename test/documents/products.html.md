@@ -55,3 +55,5 @@ products:
 This is the body of the article
 
 <affiliate-product productid="efergy-elite-wireless-electricity-monitor"/>
+
+<affiliate-product productid="maxgreen16gen2"/>
