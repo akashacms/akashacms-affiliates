@@ -4,7 +4,11 @@
 <div class="affiliateproduct" style="clear: both;" 
         {% if anchorName %}id="{{ anchorName }}"{% endif %} >
     {% if productimgurl  %}
-        {% call ak_bootstrap.card_block(additionalClasses="float-right", style="width: 150px;", cardImageTop=productimgurl, cardImageAlt="Buy "+ productname, cardImageStyle="width: 100%;") %}
+        {% call ak_bootstrap.card_block(additionalClasses="float-right",
+                                        style="width: 150px;",
+                                        cardImageTop=productimgurl,
+                                        cardImageAlt="Buy "+ productname,
+                                        cardImageStyle="width: 100%;") %}
             {%- call ak_bootstrap.button_launched_modal(id=anchorName + "-modal-button",
                         title=productname,
                         buttonText="View larger image",

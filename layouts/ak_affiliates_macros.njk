@@ -2,7 +2,7 @@
 
 {% macro aff_image_gallery(id, productimgurl, gallery) -%}
     {% call ak_bootstrap.carousel_container(id=id) -%}
-        {% call ak_bootstrap.carousel_item(href=productimgurl, isactive="true") -%}
+        {% call ak_bootstrap.carousel_item(href=productimgurl, isactive="active") -%}
         {%- endcall %}
         {% for item in gallery -%}
             {% call ak_bootstrap.carousel_item(href=item.url) -%}
