@@ -45,7 +45,7 @@
             <% } %>
         </h2>
         <% if (typeof productdescription !== 'undefined' && productdescription) { %><%- productdescription %><% } %>
-        <% if (partialBody) { %><%- partialBody %><% } %>
+        <% if (typeof partialBody !== 'undefined') { %><%- partialBody %><% } %>
     </div>
 
     <%

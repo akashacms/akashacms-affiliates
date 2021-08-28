@@ -478,56 +478,107 @@ describe('AMZN Buy Buttons', function() {
 });
 
 describe('Affiliate Product', function() {
-    let html;
-    let $;
+    describe('products.html', function() {
 
-    before(async function() {
-        let result = await akasha.readRenderedFile(config, 'products.html');
-        html = result.html;
-        $ = result.$;
+        let html;
+        let $;
+
+        before(async function() {
+            let result = await akasha.readRenderedFile(config, 'products.html');
+            html = result.html;
+            $ = result.$;
+        });
+
+        it('should correctly read products.html', function() {
+            assert.exists(html, 'result exists');
+            assert.isString(html, 'result isString');
+        });
+
+        it('should render efergy-elite-wireless-electricity-monitor', async function() {
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor').length, 1);
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-img-top').attr('src'),
+                        'https://images-na.ssl-images-amazon.com/images/I/71Lx99WgYdL._SL1200_.jpg');
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body button[data-target="#efergy-elite-wireless-electricity-monitor-modal-button"]').length, 1);
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button').length, 1);
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button .affproductname').attr('href'), 'https://www.amazon.com/Efergy-Elite-Wireless-Electricity-Monitor/dp/B003XOXU02/ref=sr_1_16?tag=fake-affiliate-code');
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button img').attr('src'), 'https://images-na.ssl-images-amazon.com/images/I/71Lx99WgYdL._SL1200_.jpg');
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .productdescription').length, 1);
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor .productdescription .affproductname').attr('href'), 'https://www.amazon.com/Efergy-Elite-Wireless-Electricity-Monitor/dp/B003XOXU02/ref=sr_1_16?tag=fake-affiliate-code');
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block').length, 1);
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block form[action="https://www.amazon.com/gp/aws/cart/add.html"]').length, 1);
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block form[action="https://www.amazon.com/gp/aws/cart/add.html"] input[name="ASIN.1"]').attr('value'), 'B003XOXU02');
+            assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block .list-group .list-group-item').length, 4);
+        });
+
+        it('should render maxgreen16gen2', function() {
+            assert.equal($('body #maxgreen16gen2').length, 2);
+            assert.equal($('body #maxgreen16gen2 .card-img-top').attr('src'),
+                        'https://images-na.ssl-images-amazon.com/images/I/71pdNWfVx0L._AC_SL1500_.jpg');
+            assert.equal($('body #maxgreen16gen2 .card-body button[data-target="#maxgreen16gen2-modal-button"]').length, 2);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button').length, 2);
+            assert.include($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button .modal-title').html(), 'MAX GREEN Upgraded Version Level');
+            assert.equal($('body #maxgreen16gen2 #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/71pdNWfVx0L._AC_SL1500_.jpg"]').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/71x3F75eFuL._AC_SL1500_.jpg"]').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/717%2BwhgvZ4L._AC_SL1500_.jpg"]').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/61ONTRFfGhL._AC_SL1200_.jpg"]').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/81E7wDbdNdL._AC_SL1500_.jpg"]').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/71mP0ZvECXL._AC_SL1500_.jpg"]').length, 1);
+            assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/61rkZ19vvkL._AC_SL1200_.jpg"]').length, 1);
+
+            assert.include($('body #maxgreen16gen2  .productdescription .affproductname').attr('href'), 'https://www.amazon.com/dp/B07J4VCYKL?linkCode=ll1&tag=fake-affiliate-code&linkId=724a4b82865a81f202f0f7925bf323c2&language=en_US&ref_=as_li_ss_tl');
+            assert.include($('body #maxgreen16gen2  .productdescription .affproductname').html(), 'MAX GREEN Upgraded Version Level');
+            assert.include($('body #maxgreen16gen2  .card-header').html(), 'MAX GREEN Upgraded Version Level');
+        });
+
     });
 
-    it('should correctly read products.html', function() {
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+    describe('accordion.html', function() {
+        let html;
+        let $;
+
+        before(async function() {
+            let result = await akasha.readRenderedFile(config, 'accordion.html');
+            html = result.html;
+            $ = result.$;
+        });
+
+        it('should correctly read products.html', function() {
+            assert.exists(html, 'result exists');
+            assert.isString(html, 'result isString');
+        });
+
+        it('should have accordion', function() {
+            assert.equal($('body #accordion1-accordion').length, 1);
+            assert.equal($('body #maxgreen16gen2-product-container').length, 1);
+            assert.isOk($('body #maxgreen16gen2-product-container').hasClass('card'));
+            assert.equal($('body #NodeJSWebDevelopment3rdEdition-product-container').length, 1);
+            assert.isOk($('body #NodeJSWebDevelopment3rdEdition-product-container').hasClass('card'));
+            assert.equal($('body #wattzilla75-product-container').length, 1);
+            assert.isOk($('body #wattzilla75-product-container').hasClass('card'));
+        });
+
+        it('should have maxgreen16gen2', function() {
+            assert.equal($('body #maxgreen16gen2').length, 1);
+            assert.isOk($('body #maxgreen16gen2').hasClass('affiliateproduct'));
+            assert.equal($('body #maxgreen16gen2 .card-img-top').attr('src'), 
+                'https://images-na.ssl-images-amazon.com/images/I/71pdNWfVx0L._AC_SL1500_.jpg');
+        });
+
+        it('should have NodeJSWebDevelopment3rdEdition', function() {
+            assert.equal($('body #NodeJSWebDevelopment3rdEdition').length, 1);
+            assert.isOk($('body #NodeJSWebDevelopment3rdEdition').hasClass('affiliateproduct'));
+            assert.equal($('body #NodeJSWebDevelopment3rdEdition .card-img-top').attr('src'), 
+                'https://images-na.ssl-images-amazon.com/images/I/41SzsmJa9uL.jpg');
+        });
+
+        it('should have wattzilla75', function() {
+            assert.equal($('body #wattzilla75').length, 1);
+            assert.isOk($('body #wattzilla75').hasClass('affiliateproduct'));
+            assert.equal($('body #wattzilla75 .card-img-top').attr('src'), 
+                'https://images-na.ssl-images-amazon.com/images/I/81vpi6xNYAL._SL1500_.jpg');
+        });
     });
-
-    it('should render efergy-elite-wireless-electricity-monitor', async function() {
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor').length, 1);
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-img-top').attr('src'),
-                    'https://images-na.ssl-images-amazon.com/images/I/71Lx99WgYdL._SL1200_.jpg');
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body button[data-target="#efergy-elite-wireless-electricity-monitor-modal-button"]').length, 1);
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button').length, 1);
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button .affproductname').attr('href'), 'https://www.amazon.com/Efergy-Elite-Wireless-Electricity-Monitor/dp/B003XOXU02/ref=sr_1_16?tag=fake-affiliate-code');
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .card-body #efergy-elite-wireless-electricity-monitor-modal-button img').attr('src'), 'https://images-na.ssl-images-amazon.com/images/I/71Lx99WgYdL._SL1200_.jpg');
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .productdescription').length, 1);
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor .productdescription .affproductname').attr('href'), 'https://www.amazon.com/Efergy-Elite-Wireless-Electricity-Monitor/dp/B003XOXU02/ref=sr_1_16?tag=fake-affiliate-code');
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block').length, 1);
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block form[action="https://www.amazon.com/gp/aws/cart/add.html"]').length, 1);
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block form[action="https://www.amazon.com/gp/aws/cart/add.html"] input[name="ASIN.1"]').attr('value'), 'B003XOXU02');
-        assert.equal($('body #efergy-elite-wireless-electricity-monitor-buy-block .list-group .list-group-item').length, 4);
-    });
-
-    it('should render maxgreen16gen2', function() {
-        assert.equal($('body #maxgreen16gen2').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-img-top').attr('src'),
-                    'https://images-na.ssl-images-amazon.com/images/I/71pdNWfVx0L._AC_SL1500_.jpg');
-        assert.equal($('body #maxgreen16gen2 .card-body button[data-target="#maxgreen16gen2-modal-button"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button').length, 1);
-        assert.include($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button .modal-title').html(), 'MAX GREEN Upgraded Version Level');
-        assert.equal($('body #maxgreen16gen2 #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/71pdNWfVx0L._AC_SL1500_.jpg"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/71x3F75eFuL._AC_SL1500_.jpg"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/717%2BwhgvZ4L._AC_SL1500_.jpg"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/61ONTRFfGhL._AC_SL1200_.jpg"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/81E7wDbdNdL._AC_SL1500_.jpg"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/71mP0ZvECXL._AC_SL1500_.jpg"]').length, 1);
-        assert.equal($('body #maxgreen16gen2 .card-body #maxgreen16gen2-modal-button #maxgreen16gen2-modal-carousel .carousel-item img[src="https://images-na.ssl-images-amazon.com/images/I/61rkZ19vvkL._AC_SL1200_.jpg"]').length, 1);
-
-        assert.include($('body #maxgreen16gen2  .productdescription .affproductname').attr('href'), 'https://www.amazon.com/dp/B07J4VCYKL?linkCode=ll1&tag=fake-affiliate-code&linkId=724a4b82865a81f202f0f7925bf323c2&language=en_US&ref_=as_li_ss_tl');
-        assert.include($('body #maxgreen16gen2  .productdescription .affproductname').html(), 'MAX GREEN Upgraded Version Level');
-        assert.include($('body #maxgreen16gen2  .card-header').html(), 'MAX GREEN Upgraded Version Level');
-    })
 });
 
 describe('SHUTDOWN', function() {

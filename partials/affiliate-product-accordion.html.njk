@@ -1,0 +1,53 @@
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
+{% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
+
+{% set plugin = config.plugin("akashacms-affiliates") %}
+
+{%- set accordion_id = id + "-accordion" -%}
+{% call ak_bootstrap.collapse_container(id=accordion_id) %}
+    {% set first = "true" %}
+    {% for productid in products %}
+        {% if first === "true" %}
+        {% set collapsed = "true" %}
+        {% else %}
+        {% set collapsed = "false" %}
+        {% endif %}
+        {% set first = "false" %}
+        {% set product = plugin.getProductData(undefined, productid) %}
+        {% call ak_bootstrap.collapse_item(id=product.anchorName + "-product-container",
+                parentID=accordion_id, title=product.productname,
+                thumburl=product.productimgurl, collapsed=collapsed) %}
+            {% call ak_affiliates.aff_product(product=product) %}{% endcall %}
+        {% endcall %}
+    {% endfor %}
+{% endcall %}
+
+{#
+<collapse-container id="<%= id %>-accordion">
+<%
+let isfirst = true;
+for (product of products) { %>
+    <collapse-item parent-id="<%= id %>-accordion" 
+            id="<%= product.anchorName %>-collapse"
+            title="<%= product.productname %>"
+            <% 
+            if (typeof product.productimgurl !== 'undefined') {
+            %> thumb-url="<%= product.productimgurl %>" <%
+            }
+            if (!isfirst) { %> collapsed="true" <% } 
+            %> >
+
+        {{ include "affiliate-product.html.njk" }}
+        {# <%- include('affiliate-product.html.ejs', product) %>
+        <!-- affiliate-product productid="<%= product.code %>" 
+            <% if (typeof producthref !== 'undefined') {
+                %> href="<%= producthref %>" <%
+            } %> ></affiliate-product --> # }
+       
+    </collapse-item>
+
+<%
+    isfirst = false;
+} %>
+</collapse-container>
+#}

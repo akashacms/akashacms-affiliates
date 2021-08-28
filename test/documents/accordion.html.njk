@@ -1,0 +1,11 @@
+---
+layout: default.html.ejs
+title: Accordion in NJK
+---
+
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
+
+{% set products = [ 'maxgreen16gen2', '1785881507', 'wattzilla75' ] %}
+
+{% call ak_affiliates.aff_product_accordion("accordion1", products) %}
+{% endcall %}

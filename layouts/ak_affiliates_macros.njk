@@ -1,5 +1,36 @@
 {% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
 
+{% macro aff_product(product, template) -%}
+{%- if template -%}
+{%- set _template = template -%}
+{%- else -%}
+{%- set _template = "affiliate-product.html.njk" -%}
+{%- endif -%}
+{%- set code = product.code -%}
+{%- set anchorName = product.anchorName -%}
+{%- set productimgurl = product.productimgurl -%}
+{%- set productname = product.productname -%}
+{%- set productimgurl = product.productimgurl -%}
+{%- set gallery = product.gallery -%}
+{%- set productbuyurl = product.productbuyurl -%}
+{%- set productrel = product.productrel -%}
+{%- set productdescription = product.productdescription -%}
+{%- set partialBody = product.partialBody -%}
+{%- set productattributes = product.productattributes -%}
+{%- set productamzn = product.productamzn -%}
+{%- set productlinks = product.productlinks -%}
+{%- include _template -%}
+{%- endmacro %}
+
+{% macro aff_product_accordion(id, products, template) -%}
+{%- if template -%}
+{%- set _template = template -%}
+{%- else -%}
+{%- set _template = "affiliate-product-accordion.html.njk" -%}
+{%- endif -%}
+{%- include _template -%}
+{%- endmacro %}
+
 {% macro aff_image_gallery(id, productimgurl, gallery) -%}
     {% call ak_bootstrap.carousel_container(id=id) -%}
         {% call ak_bootstrap.carousel_item(href=productimgurl, isactive="active") -%}

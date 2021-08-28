@@ -263,6 +263,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     }
 
     getProductData(_href, productid) {
+        // console.log(`getProductData ${_href} ${productid}`);
         let href;
         if (_href) {
             href = _href.startsWith('/')
@@ -288,7 +289,8 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             // console.log(`getProductData failed to find anything for ${productid} ${href} ${JSON.stringify(selector)}`);
             // console.log(filecache.documents.find(href));
             return undefined;
-         }
+        }
+        // console.log(`getProductData ${util.inspect(selector)}`, found[0]);
         return found[0];
     }
 
@@ -565,19 +567,24 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
         if (!id || id === '') {
             throw new Error(`affiliate-product-accordion 'id' is required in ${metadata.document.path}`);
         }
+        // console.log($element.attr('products'));
+        // console.log($element.attr('data-products'));
         const productids = $element.data('products');
+        // console.log(productids);
+        // console.log(Array.isArray(productids));
+        // console.log(typeof productids);
         if (!productids || productids === '' || !Array.isArray(productids)) {
             throw new Error(`affiliate-product-accordion 'data-products' is required in ${metadata.document.path}`);
         }
-        const thumbImageStyle = $element.attr('thumb-image-style');
+        /* const thumbImageStyle = $element.attr('thumb-image-style');
         if (!thumbImageStyle || thumbImageStyle === '') {
             throw new Error(`affiliate-product-accordion 'thumb-image-style' is required in ${metadata.document.path}`);
-        }
+        } */
         const href = $element.attr('href');
         const data = {
             id,
             usefade: "fade",
-            thumbImageStyle,
+            // thumbImageStyle,
             producthref: href
         };
         data.products = this.array.options.config.plugin(pluginName)

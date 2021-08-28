@@ -57,3 +57,8 @@ This is the body of the article
 <affiliate-product productid="efergy-elite-wireless-electricity-monitor"/>
 
 <affiliate-product productid="maxgreen16gen2"/>
+
+To pass the array of product ID's we use the `data-products` attribute.  Inside the Mahafunc, this is retrieved using `data('products')`, a side effect of which is to automatically parse the string and produce an array.  For the parsing to work, the array must be encoded precisely as here, with double-quotes around each item code in the array.
+
+<affiliate-product-accordion id="accordion1" 
+    data-products='[ "maxgreen16gen2", "1785881507", "wattzilla75" ]'></affiliate-product-accordion>
