@@ -12,6 +12,7 @@
             {%- call ak_bootstrap.button_launched_modal(id=anchorName + "-modal-button",
                         title=productname,
                         buttonText="View larger image",
+                        closeButtonText="Close",
                         modelAdditionalClasses="modal-dialog-centered btn-small") -%}
                 {% if gallery %}
                     {%- call ak_affiliates.aff_image_gallery(id=anchorName + "-modal-carousel", productimgurl=productimgurl, gallery=gallery) -%}
@@ -19,7 +20,8 @@
                 {% else %}
                     <a class="affproductname" href="{{ productbuyurl | safe }}"
                         {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
-                    <img src="{{ productimgurl | safe }}" alt="Buy {{ productname | safe }}"/>
+                    <img src="{{ productimgurl | safe }}" alt="Buy {{ productname | safe }}"
+                            class="d-block w-100"/>
                     </a>
                 {% endif %}
             {%- endcall -%}

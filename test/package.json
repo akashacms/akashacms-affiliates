@@ -1,19 +1,28 @@
 {
-    "name": "akashacms-affiliates-test",
-    "version": "1.0.0",
-    "description": "Test suite for akashacms-affiliates module",
-    "main": "index.js",
-    "scripts": {
-      "test": "mocha  ./test-search.js",
-      "setup": "npm install && cd .. && npm install && npm install akashacms/akasharender#watcher --no-save",
-      "clean": "rm -rf node_modules out"
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-      "@akashacms/theme-bootstrap": "akashacms/akashacms-theme-bootstrap#watcher",
-      "chai": "^4.3.4",
-      "mocha": "^8.3.2"
-    }
+  "name": "akashacms-affiliates-test",
+  "version": "1.0.0",
+  "description": "Test suite for akashacms-affiliates module",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha  ./test-search.js",
+    "setup": "npm install && cd .. && npm install && npm install akashacms/akasharender#watcher --no-save",
+    "prebuild": "akasharender copy-assets config.js",
+    "build": "akasharender render config.js",
+    "watch": "npm-run-all --parallel watcher preview",
+    "watcher": "akasharender watch config.js",
+    "preview": "live-server out",
+    "clean": "rm -rf node_modules out ../node_modules"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@akashacms/theme-bootstrap": "akashacms/akashacms-theme-bootstrap#watcher",
+    "bootstrap": "^4.6.x",
+    "chai": "^4.3.4",
+    "jquery": "^3.6.x",
+    "live-server": "^1.2.1",
+    "mocha": "^8.3.2",
+    "npm-run-all": "^4.1.5",
+    "popper.js": "^1.16.x"
   }
-  
+}
