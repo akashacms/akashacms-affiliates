@@ -13,7 +13,7 @@
                         title=productname,
                         buttonText="View larger image",
                         closeButtonText="Close",
-                        dofade="",
+                        dofade="no",
                         modelAdditionalClasses="modal-dialog-centered btn-small") -%}
                 {% if gallery %}
                     {%- call ak_affiliates.aff_image_gallery(id=anchorName + "-modal-carousel", productimgurl=productimgurl, gallery=gallery) -%}
