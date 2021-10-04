@@ -9,23 +9,7 @@
                                         cardImageTop=productimgurl,
                                         cardImageAlt="Buy "+ productname,
                                         cardImageStyle="width: 100%;") %}
-            {%- call ak_bootstrap.button_launched_modal(id=anchorName + "-modal-button",
-                        title=productname,
-                        buttonText="View larger image",
-                        closeButtonText="Close",
-                        dofade="no",
-                        modelAdditionalClasses="modal-dialog-centered btn-small") -%}
-                {% if gallery %}
-                    {%- call ak_affiliates.aff_image_gallery(id=anchorName + "-modal-carousel", productimgurl=productimgurl, gallery=gallery) -%}
-                    {%- endcall -%}
-                {% else %}
-                    <a class="affproductname" href="{{ productbuyurl | safe }}"
-                        {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
-                    <img src="{{ productimgurl | safe }}" alt="Buy {{ productname | safe }}"
-                            class="d-block w-100"/>
-                    </a>
-                {% endif %}
-            {%- endcall -%}
+            {% include "affiliate-product-gallery.html.njk" %}
         {% endcall %}
     {% endif %}
     <div class="productdescription">
@@ -42,59 +26,10 @@
         {% if partialBody %}{{ partialBody }}{% endif %}
     </div>
 
-    {% if productattributes %}
-        <ul>
-        {% for productattr in productattributes %}
-            <li>{{ productattr | safe }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
+    {% include "affiliate-product-attributes.html.njk" %}
 
     {% call ak_bootstrap.card_block(id=code + "-buy-block", header="Buy " + productname) %}
-
-    {% if productamzn -%}
-        {% for amzn in productamzn -%}
-            {% if amzn and amzn.asin -%}
-                {#
-                 In testing, Canada buy buttons don't seem to work.  The user
-                 ends up on amazon.ca with the correct product information but
-                 their shopping card doesn't fill and the site says the product
-                 is unavailable.
-                if (amzn.countryCode === "ca") {
-                    %><amazon-ca-buy affcode="<%= amzn.affcode %>" asin="<%= amzn.asin %>"/><%
-                } else
-                 For the following the only country code which is tested is
-                 "com" meaning USA.
-                #}
-                {% if amzn.countryCode === 'co-jp' -%}
-                    {{- ak_affiliates.aff_amzn_co_jp_button(amzn.asin) -}}
-                {%- elif amzn.countryCode === 'co-uk' -%}
-                    {{- ak_affiliates.aff_amzn_co_uk_button(amzn.asin) -}}
-                {%- elif amzn.countryCode === 'com' -%}
-                    {{- ak_affiliates.aff_amzn_com_button(amzn.asin) -}}
-                {%- elif amzn.countryCode === 'de' -%}
-                    {{- ak_affiliates.aff_amzn_de_button(amzn.asin) -}}
-                {%- elif amzn.countryCode === 'es' -%}
-                    {{- ak_affiliates.aff_amzn_es_button(amzn.asin) -}}
-                {%- elif amzn.countryCode === 'fr' -%}
-                    {{- ak_affiliates.aff_amzn_fr_button(amzn.asin) -}}
-                {%- elif amzn.countryCode === 'it' -%}
-                    {{- ak_affiliates.aff_amzn_it_button(amzn.asin) -}}
-                {%- endif -%}
-            {%- endif %}
-        {%- endfor %}
-    {%- endif %}
-    {% if productlinks -%}
-        <ul class="list-group list-group-flush">
-        {% for link in productlinks -%}
-                <li class="list-group-item">
-                <a href="{{ link.url | safe }}" rel="{{ link.rel | safe }}"
-                    {% if link.tooltip %}data-toggle="tooltip" title="{{ link.tooltip | safe }}"{% endif %} >
-                    {{ link.text | safe }}</a>
-                </li>
-        {%- endfor %}
-        </ul>
-    {%- endif %}
+    {% include "affiliate-product-purchase-options-bootstrap.html.njk" %}
     {% endcall %}
 
     <div class="affiliate-product-sponsored">Sponsored</div>

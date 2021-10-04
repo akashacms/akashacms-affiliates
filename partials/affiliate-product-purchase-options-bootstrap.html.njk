@@ -1,0 +1,62 @@
+<div class="d-flex flex-row flex-wrap align-items-start">
+{% if productamzn %}
+{% for amzn in productamzn %}
+    {% if amzn and amzn.asin %}
+        {# In testing, Canada buy buttons don't seem to work.  The user
+            ends up on amazon.ca with the correct product information
+            but their shopping cart doesn't fill and the site says
+            the product is unavailable. #}
+        {% if amzn.countryCode === "co-jp" %}
+        <span class="p-0 bd-highlight">
+            {{- ak_affiliates.aff_amzn_co_jp_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+        {% if amzn.countryCode === "co-uk" %}
+        <span class="p-0 bd-highlight ">
+            {{- ak_affiliates.aff_amzn_co_uk_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+        {% if amzn.countryCode === "com" %}
+        <span class="p-0 bd-highlight">
+            {{- ak_affiliates.aff_amzn_com_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+        {% if amzn.countryCode === "de" %}
+        <span class="p-0 bd-highlight">
+            {{- ak_affiliates.aff_amzn_de_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+        {% if amzn.countryCode === "es" %}
+        <span class="p-0 bd-highlight">
+            {{- ak_affiliates.aff_amzn_es_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+        {% if amzn.countryCode === "fr" %}
+        <span class="p-0 bd-highlight">
+            {{- ak_affiliates.aff_amzn_fr_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+        {% if amzn.countryCode === "it" %}
+        <span class="p-0 bd-highlight">
+            {{- ak_affiliates.aff_amzn_it_button(amzn.asin, display="inline") -}}
+        </span>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{% endif %}
+
+{% set links = config.plugin('akashacms-affiliates').productLinks(
+        productbuyurl = productbuyurl, productname = productname,
+        productrel = productrel, productlinks = productlinks) %}
+{% if links %}
+    {% for link in links %}
+        <a href="{{ link.url | safe }}" rel="{{ link.rel | safe }}"
+            type="button"
+            class="p-2 bd-highlight d-inline btn btn-secondary akashacms-external-links-suppress-icons"
+            {% if link.tooltip %}
+                data-toggle="tooltip" title="{{ link.tooltip | safe }}"
+            {% endif %}
+        >{{ link.text | safe }}</a>
+    {% endfor %}
+{% endif %}
+</div>

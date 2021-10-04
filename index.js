@@ -641,6 +641,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
         const productid = $element.attr('productid');
+        const title  = $element.attr('title')  ? $element.attr('title')  : undefined;
         const type   = $element.attr('type')   ? $element.attr('type')   : 'card';
         const float  = $element.attr('float')  ? $element.attr('float')  : "left";
         const width  = $element.attr('width')  ? $element.attr('width')  : "200px";
@@ -677,7 +678,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             if (isdirtyattr) dirty();
             return akasha.partial(this.array.options.config, template, {
                 productid: productid, href: productHref,
-                title: data.productname, thumburl: data.productimgurl,
+                title: title ? title : data.productname, thumburl: data.productimgurl,
                 productbuyurl: data.productbuyurl,
                 productdescription: data.productdescription,
                 content: $element.contents(),
@@ -686,9 +687,9 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 style: style
             });
         } else if (type === "link") {
-            return `<a href='${productHref}'>${data.productname}</a>`;
+            return `<a href='${productHref}'>${title ? title : data.productname}</a>`;
         } else if (type === "teaser") {
-            return `<a href='${productHref}'>${data.productname}</a>: ${data.teaser ? data.teaser : ''}`;
+            return `<a href='${productHref}'>${title ? title : data.productname}</a>: ${data.teaser ? data.teaser : ''}`;
         }
     }
 }

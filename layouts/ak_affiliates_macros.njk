@@ -50,7 +50,7 @@
 {%- set targetBlank = '' -%}
 {%- endif -%}
 {%- if display -%}
-{%- set formDisplay = 'style="display: ${DISPLAY}" !important;' | replace('DISPLAY', display) -%}
+{%- set formDisplay = 'style="display: DISPLAY !important;"' | replace('DISPLAY', display) -%}
 {%- else -%}
 {%- set formDisplay = '' -%}
 {%- endif -%}
@@ -89,4 +89,18 @@
 
 {% macro aff_amzn_it_button(asin, display, target) -%}
 {{- aff_amzn_buy_button(asin, "it", display, target) -}}
+{%- endmacro %}
+
+{% macro aff_purchase_options(product, template) -%}
+{%- if template -%}
+{%- set _template = template -%}
+{%- else -%}
+{%- set _template = "affiliate-product-purchase-options-bootstrap.html.njk" -%}
+{%- endif -%}
+{%- set productname = product.productname -%}
+{%- set productbuyurl = product.productbuyurl -%}
+{%- set productrel = product.productrel -%}
+{%- set productamzn = product.productamzn -%}
+{%- set productlinks = product.productlinks -%}
+{%- include _template -%}
 {%- endmacro %}

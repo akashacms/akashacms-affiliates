@@ -1,0 +1,22 @@
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
+{% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
+
+{%- call ak_bootstrap.button_launched_modal(id=anchorName + "-gallery",
+            title=productname,
+            buttonText="View larger image",
+            closeButtonText="Close",
+            dofade="no",
+            modelAdditionalClasses="modal-dialog-centered btn-small") -%}
+    {% if gallery %}
+        {%- call ak_affiliates.aff_image_gallery(id=anchorName + "-gallery-carousel",
+                                            productimgurl=productimgurl,
+                                            gallery=gallery) -%}
+        {%- endcall -%}
+    {% else %}
+        <a class="affproductname" href="{{ productbuyurl | safe }}"
+            {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
+        <img src="{{ productimgurl | safe }}" alt="Buy {{ productname | safe }}"
+                class="d-block w-100"/>
+        </a>
+    {% endif %}
+{%- endcall -%}

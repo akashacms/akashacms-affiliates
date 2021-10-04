@@ -1,0 +1,7 @@
+{% if productattributes %}
+    <ul>
+    {% for productattr in productattributes %}
+        <li>{{ productattr | safe }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
