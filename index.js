@@ -29,7 +29,7 @@ const mahabhuta = akasha.mahabhuta;
 const yaml      = require('js-yaml');
 const domainMatch = require('domain-match');
 
-const pluginName = "akashacms-affiliates";
+const pluginName = "@akashacms/plugins-affiliates";
 
 // This will hold a pointer to the ForerunnerDB collection
 // used by this plugin
@@ -482,8 +482,10 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
     get selector() { return "html body a"; }
 
     process($, $link, metadata, dirty, done) {
-        var href     = $link.attr('href');
-        var rel      = $link.attr('rel');
+        const plugin = this.array.options.config.plugin(pluginName);
+        if (!plugin) throw new Error(`AffiliateLinkMunger did not find plugin ${pluginName}`);
+        let href     = $link.attr('href');
+        let rel      = $link.attr('rel');
 
         if (!href) return Promise.resolve("");
 
@@ -501,7 +503,7 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
                 { country: "fr",  domain: '*.amazon.fr' },
                 { country: "it",  domain: '*.amazon.it' }
             ].forEach(amazonSite => {
-                let amazonCode = this.array.options.config.plugin(pluginName)
+                let amazonCode = plugin
                         .amazonCodeForCountry(this.array.options.config, amazonSite.country);
                 // console.log(`${urlP.hostname} is ${amazonSite.domain}? ${amazonSite.domain.test(urlP.hostname)} amazonCode ${amazonCode}`);
                 if (domainMatch(amazonSite.domain, href)
@@ -512,10 +514,10 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
                 }
             });
 
-            if (this.array.options.config.plugin(pluginName).doNoSkimlinksForDomain(this.array.options.config, urlP.hostname)) {
+            if (plugin.doNoSkimlinksForDomain(this.array.options.config, urlP.hostname)) {
                 akasha.linkRelSetAttr($link, 'noskim', true);
             }
-            if (this.array.options.config.plugin(pluginName).doNoViglinksForDomain(this.array.options.config, urlP.hostname)) {
+            if (plugin.doNoViglinksForDomain(this.array.options.config, urlP.hostname)) {
                 akasha.linkRelSetAttr($link, 'norewrite', true);
             }
         }

@@ -1,3 +1,4 @@
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
 <form method="GET" 
         {% if countryCode === "ca" %}action="https://www.amazon.ca/gp/aws/cart/add.html"
         {% elif countryCode === "co-jp" %}action="https://www.amazon.co.jp/gp/aws/cart/add.html"

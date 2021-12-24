@@ -1,7 +1,7 @@
 {% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
 {% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
 
-{% set plugin = config.plugin("akashacms-affiliates") %}
+{% set plugin = config.plugin("@akashacms/plugins-affiliates") %}
 
 {%- set accordion_id = id + "-accordion" -%}
 {% call ak_bootstrap.collapse_container(id=accordion_id) %}

@@ -1,3 +1,4 @@
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
 <div class="d-flex flex-row flex-wrap align-items-start">
 {% if productamzn %}
 {% for amzn in productamzn %}
@@ -45,7 +46,7 @@
 {% endfor %}
 {% endif %}
 
-{% set links = config.plugin('akashacms-affiliates').productLinks(
+{% set links = config.plugin('@akashacms/plugins-affiliates').productLinks(
         productbuyurl = productbuyurl, productname = productname,
         productrel = productrel, productlinks = productlinks) %}
 {% if links %}

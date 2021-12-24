@@ -54,7 +54,7 @@
 {%- else -%}
 {%- set formDisplay = '' -%}
 {%- endif -%}
-{%- set affcode = config.plugin('akashacms-affiliates').amazonCodeForCountry(config, countryCode) -%}
+{%- set affcode = config.plugin('@akashacms/plugins-affiliates').amazonCodeForCountry(config, countryCode) -%}
 {%- include "amazon-buy-button.html.njk" -%}
 {%- endif %}
 {% endmacro %}
