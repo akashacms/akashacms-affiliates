@@ -1,9 +1,10 @@
 {
   "name": "@akashacms/plugins-affiliates",
-  "version": "0.8.1",
+  "version": "0.8.0",
   "description": "AkashaCMS plugin to simplify generating affiliate links",
   "main": "index.js",
   "scripts": {
+    "dopublish": "npm publish --access public"
   },
   "repository": {
     "type": "git",
