@@ -26,7 +26,7 @@ config.setMahabhutaConfig({
     recognizeCDATA: true,
     decodeEntities: true
 });
-config.plugin("akashacms-affiliates")
+config.plugin('@akashacms/plugins-affiliates')
     .amazonAffiliateCode(config, 'ca', 'fake-affiliate-code')
     .amazonAffiliateCode(config, 'co-jp', 'fake-affiliate-code')
     .amazonAffiliateCode(config, 'co-uk', 'fake-affiliate-code')
@@ -35,7 +35,7 @@ config.plugin("akashacms-affiliates")
     .amazonAffiliateCode(config, 'es', 'fake-affiliate-code')
     .amazonAffiliateCode(config, 'fr', 'fake-affiliate-code')
     .amazonAffiliateCode(config, 'it', 'fake-affiliate-code');
-config.plugin('akashacms-affiliates')
+config.plugin('@akashacms/plugins-affiliates')
     .loadAffiliateProducts(config, 'test-products.yml');
 
 

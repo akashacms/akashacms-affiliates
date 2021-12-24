@@ -5,21 +5,19 @@ title: AskashaCMS Affiliate-Link generator documentation
 
 Affiliate Marketing is a common way to monetize a website.  The concept is simple, you make a specially constructed link to a product on a merchants website, and if a visitor clicks through that link then buys the product you get a commission.  It's possible to have a product catalog of items you recommend to your readers, without having to stock a warehouse, handle order fulfillment, and all the other details involved with selling stuff.
 
-The `akashacms-affiliates` plugin simplifies the task of maintaining a list of products where you have affiliate links.
+The `@akashacms/plugins-affiliates` plugin simplifies the task of maintaining a list of products where you have affiliate links.
 
 # Installation
 
 With an AkashaCMS website setup, add the following to `package.json`
 
-```
+```json
   "dependencies": {
     ...
-    "akashacms-affiliates": "akashacms/akashacms-affiliates"
+    "@akashacms/plugins-affiliates": "^0.8.x"
     ...
   }
 ```
-
-I haven't decided to publish this plugin to `npm` yet.  Instead, at the moment, one should access it as shown here from the Github repository.
 
 Once added to `package.json` run: `npm install`
 
@@ -27,10 +25,10 @@ Once added to `package.json` run: `npm install`
 
 In `config.js` for the website:
 
-```
-config.use(require('akashacms-affiliates'));
+```js
+config.use(require('@akashacms/plugins-affiliates'));
 
-config.plugin("akashacms-affiliates")
+config.plugin('@akashacms/plugins-affiliates')
     .amazonAffiliateCode(config, 'com', 'YOUR AMAZON AFFILIATE CODE')
     .loadAffiliateProducts(config, 'affiliate-products.yml');
 ```
@@ -68,7 +66,7 @@ The `productid` parameter references the `productid` of an affiliate product.  T
 
 Sometimes you want to have a link from several places to a specific page holding the full affiliate product description.  For example you might have one or more "catalog" pages listing items of a given type.  Then elsewhere on the site, you might want to link to a specific item on one of these catalog pages.
 
-```
+```html
 <affiliate-product-link productid="0914955748" type="card">
 ```
 
@@ -108,7 +106,7 @@ The default templates are of course as so:
 
 # Affiliate product YAML file
 
-The function `config.plugin("akashacms-affiliates").affiliateProduct(config, productid, data)` will load a single product into the list of affiliate products.  As a convenience you can create a YAML file containing a whole list of affiliate products.  That file is loaded using the `loadAffiliateProducts(config, 'affiliate-products.yml')` as we said earlier.
+The function `config.plugin('@akashacms/plugins-affiliates').affiliateProduct(config, productid, data)` will load a single product into the list of affiliate products.  As a convenience you can create a YAML file containing a whole list of affiliate products.  That file is loaded using the `loadAffiliateProducts(config, 'affiliate-products.yml')` as we said earlier.
 
 When loaded, a top level attribute `products` is looked for.  That attribute is interpreted as an array, each element of the array is added using the `affiliateProduct` method.
 
@@ -122,7 +120,7 @@ The `productname` attribute is, as implied, the name of the product.  The `produ
 
 The `productdescription` is your description of the product.  This can be a simple string, or it can be a long text field if you use YAML notation as so:
 
-```
+```yaml
     productdescription: |
         <p>This is a paragraph of text</p>
 
@@ -135,7 +133,7 @@ If you want Amazon "Buy" buttons, the `productamzn` attribute lists the country 
 
 A full example is :-
 
-```
+```yaml
     - code: "0914955756"
       anchorName: "HayashiReikiManual"
       href: "/catalog/reiki-books.html"
