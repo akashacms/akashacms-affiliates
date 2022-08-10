@@ -31,9 +31,6 @@ const domainMatch = require('domain-match');
 
 const pluginName = "@akashacms/plugins-affiliates";
 
-// This will hold a pointer to the ForerunnerDB collection
-// used by this plugin
-let cache;
 let filecache;
 
 const _plugin_config = Symbol('config');
@@ -67,7 +64,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     get options() { return this[_plugin_options]; }
 
     getCache() {
-        const coll = cache.getCache(pluginName, { create: true });
+        const coll = filecache.getCollection(pluginName);
         if (!coll) {
             throw new Error(`${pluginName} getCache failed to getCache ${coll}`);
         }
@@ -76,10 +73,10 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     // Ensure the cache is set up
     async onPluginCacheSetup() {
-        // console.log(`onPluginCacheSetup`);
+        console.log(`onPluginCacheSetup`);
 
-        cache = await akasha.cache;
         filecache = await akasha.filecache;
+        console.log(filecache);
 
         this.getCache();
 
@@ -102,7 +99,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     getProductByCode(productid) {
         const coll = this.getCache();
         let found = coll.find({
-            code: { $eeq: productid }
+            code: { '$eq': productid }
         });
         if (!found) return undefined;
         if (!Array.isArray(found)) return undefined;
@@ -112,8 +109,8 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     deleteProductByCode(productid) {
         const coll = this.getCache();
-        coll.remove({
-            code: { $eeq: productid }
+        coll.findAndRemove({
+            code: { '$eq': productid }
         });
     }
 
@@ -200,16 +197,12 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     filterProducts(searchFN) {
         const coll = this.getCache();
-        const products = coll.find({});
-        const ret = [];
-        for (let product of products) {
-            // console.log(`key ${key} product ${product}`);
-            if (searchFN(product)) {
-                ret.push(product);
-            }
-        }
-        // console.log(ret);
-        return ret;
+        const products = coll.chain()
+        .where(function(obj) {
+            return searchFN(product);
+        })
+        .data();
+        return products;
     }
 
     // These two hook functions automatically incorporate
@@ -221,9 +214,9 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
             for (let product of vpinfo.docMetadata.products) {
-                if (!(product.doc)) product.doc = {};
-                product.doc.vpath = vpinfo.vpath;
-                product.doc.renderPath = vpinfo.renderPath;
+                // if (!(product.doc)) product.doc = {};
+                product.doc_vpath = vpinfo.vpath;
+                product.doc_renderPath = vpinfo.renderPath;
                 this.affiliateProduct(config, product.code, product);
             }
         }
@@ -248,8 +241,8 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     onFileUnlinked(config, collection, vpinfo) {
         const coll = this.getCache();
-        coll.remove({
-            doc: { vpath: { $eeq: vpinfo.vpath } }
+        coll.findAndRemove({
+            doc_vpath: { '$eq': vpinfo.vpath }
         });
     }
 
@@ -274,12 +267,12 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         }
         if (!productid) return this.getRandomProduct(href);
         const selector = {
-            code: { $eeq: productid }
+            code: { '$eq': productid }
         };
         if (href) {
             selector['$or'] = [
-                { doc: { vpath: { $eeq: href } } },
-                { doc: { renderPath: { $eeq: href } } }
+                { doc_vpath: { '$eq': href } },
+                { doc_renderPath: { '$eq': href } }
             ];
         }
         const found = this.select(selector);
@@ -322,8 +315,8 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         const selector = {};
         if (href) {
             selector['$or'] = [
-                { doc: { vpath: { $eeq: href } } },
-                { doc: { renderPath: { $eeq: href } } }
+                { doc_vpath: { '$eq': href } },
+                { doc_renderPath: { '$eq': href } }
             ];
         }
         const found = this.select(selector);
