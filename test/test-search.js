@@ -36,7 +36,7 @@ describe('build site', function() {
 
     it('should run setup', async function() {
         this.timeout(75000);
-        await akasha.cacheSetupComplete(config);
+        await akasha.setup(config);
     });
 
     it('should build site', async function() {
@@ -61,6 +61,7 @@ describe('find products', function() {
         assert.isNotNull(found);
         assert.isArray(found);
         assert.equal(found.length, 5);
+        // console.log(found);
     });
 
     it('should find product 1785881507', async function() {
@@ -182,6 +183,7 @@ describe('filter products', function() {
                             // console.log(`item.code ${item.code} === '1785881507'?`)
                             return item.code === '1785881507';
                         });
+        // console.log(found);
         assert.equal(found.length, 1);
         assert.equal(found[0].anchorName, "NodeJSWebDevelopment3rdEdition");
         assert.equal(found[0].productname, "Node.JS Web Development - Third Edition");

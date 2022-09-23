@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha  ./test-search.js",
-    "setup": "npm install && cd .. && npm install && npm install akashacms/akasharender --no-save",
+    "setup": "npm install && cd .. && npm install && npm install akashacms/akasharender#0.9 --no-save",
     "prebuild": "akasharender copy-assets config.js",
     "build": "akasharender render config.js",
     "watch": "npm-run-all --parallel watcher preview",

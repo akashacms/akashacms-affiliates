@@ -31,8 +31,6 @@ const domainMatch = require('domain-match');
 
 const pluginName = "@akashacms/plugins-affiliates";
 
-let filecache;
-
 const _plugin_config = Symbol('config');
 const _plugin_options = Symbol('options');
 const _plugin_data_files = Symbol('filez');
@@ -44,7 +42,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     configure(config, options) {
         this[_plugin_config] = config;
-        this[_plugin_options] = options;
+        this.options = options;
         options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
         config.addLayoutsDir(path.join(__dirname, 'layouts'));
@@ -61,10 +59,9 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     }
 
     get config() { return this[_plugin_config]; }
-    get options() { return this[_plugin_options]; }
 
     getCache() {
-        const coll = filecache.getCollection(pluginName);
+        const coll = this.akasha.filecache.getCollection(pluginName);
         if (!coll) {
             throw new Error(`${pluginName} getCache failed to getCache ${coll}`);
         }
@@ -73,10 +70,7 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
 
     // Ensure the cache is set up
     async onPluginCacheSetup() {
-        console.log(`onPluginCacheSetup`);
-
-        filecache = await akasha.filecache;
-        console.log(filecache);
+        // console.log(`onPluginCacheSetup`);
 
         this.getCache();
 
@@ -196,12 +190,10 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     }
 
     filterProducts(searchFN) {
-        const coll = this.getCache();
-        const products = coll.chain()
-        .where(function(obj) {
-            return searchFN(product);
-        })
-        .data();
+        // const coll = this.getCache();
+        // We should be able to use LokiJS functions like:
+        // coll.chain.where(...) -- but that didn't work.
+        const products = this.getAllProducts().filter(searchFN);
         return products;
     }
 
@@ -474,13 +466,13 @@ module.exports.mahabhutaArray = function(options) {
 class AffiliateLinkMunger extends mahabhuta.Munger {
     get selector() { return "html body a"; }
 
-    process($, $link, metadata, dirty, done) {
+    async process($, $link, metadata, dirty, done) {
         const plugin = this.array.options.config.plugin(pluginName);
         if (!plugin) throw new Error(`AffiliateLinkMunger did not find plugin ${pluginName}`);
         let href     = $link.attr('href');
         let rel      = $link.attr('rel');
 
-        if (!href) return Promise.resolve("");
+        if (!href) return '';
 
         // We only act on the link if it is external -- has a PROTOCOL and HOST
         const urlP = url.parse(href, true, true);
@@ -548,7 +540,7 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         data.partialBody = $element.html();
         // The default template has several custom elements
         dirty();
-        return akasha.partial(this.array.options.config, template, data);
+        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
     }
 }
 
@@ -591,7 +583,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-accordion ${id} ${util.inspect(data)}`);
         dirty();
-        return akasha.partial(this.array.options.config, template, data);
+        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
     }
 }
 
@@ -628,7 +620,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
         dirty();
-        return akasha.partial(this.array.options.config, template, data);
+        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
     }
 }
 
@@ -671,7 +663,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             // Therefore the user of the element is required to set
             // the <code>isdirty</code> flag.
             if (isdirtyattr) dirty();
-            return akasha.partial(this.array.options.config, template, {
+            return this.array.options.config.akasha.partial(this.array.options.config, template, {
                 productid: productid, href: productHref,
                 title: title ? title : data.productname, thumburl: data.productimgurl,
                 productbuyurl: data.productbuyurl,
@@ -744,7 +736,7 @@ class AffiliateSelectElement extends mahabhuta.CustomElement {
 
 class AmazonBuyButtonElement extends mahabhuta.CustomElement {
     get elementName() { throw new Error("Use a subclass"); }
-    process($element, metadata, dirty) {
+    async process($element, metadata, dirty) {
 
         const asin     = $element.attr('asin');
         const display  = $element.attr('display');
@@ -765,7 +757,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
         // console.log(`AmazonBuyButtonElement ${asin} ${this.countryCode} ${affcode} ${template}`);
 
         if (affcode && template) {
-            return akasha.partial(this.array.options.config, template, {
+            return this.array.options.config.akasha.partial(this.array.options.config, template, {
                     targetBlank: target ? (` target="${target}"`) : "",
                     formDisplay: display ? (` style="display: ${display}" !important;`) : "",
                     ASIN: asin,
@@ -773,7 +765,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
                     countryCode: this.countryCode
                 });
         } else {
-            return Promise.resolve("");
+            return '';
         }
     }
 
