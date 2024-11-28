@@ -1,0 +1,15 @@
+
+{% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
+{% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
+
+{% call ak_bootstrap.collapse_item(
+        id=anchorName + "-product-container",
+        parentID=parentID,
+        title=productname,
+        thumburl=productimgurl, collapsed=collapsed) %}
+    <p>Within collapse item</p>
+    {# <affiliate-product
+        productid="{{ productid }}"> 
+    </affiliate-product> #}
+    {% call ak_affiliates.aff_product(product=product) %}{% endcall %}
+{% endcall %}
