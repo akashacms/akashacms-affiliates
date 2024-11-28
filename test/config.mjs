@@ -1,5 +1,10 @@
 
-const akasha  = require('akasharender');
+const __dirname = import.meta.dirname;
+
+import akasha from 'akasharender';
+
+import { AffiliatesPlugin } from '../index.mjs';
+import { ThemeBootstrapPlugin } from '@akashacms/theme-bootstrap';
 
 const config = new akasha.Configuration();
 config.rootURL("https://example.akashacms.com");
@@ -19,8 +24,8 @@ config.addLayoutsDir('layouts')
         src: 'node_modules/popper.js/dist',
         dest: 'vendor/popper.js'
     });
-config.use(require('../index.js'))
-    .use(require('@akashacms/theme-bootstrap'));
+config.use(AffiliatesPlugin)
+    .use(ThemeBootstrapPlugin);
 config.setMahabhutaConfig({
     recognizeSelfClosing: true,
     recognizeCDATA: true,
@@ -47,5 +52,5 @@ config
 
 config.prepare();
 
-module.exports = config;
+export default config;
 

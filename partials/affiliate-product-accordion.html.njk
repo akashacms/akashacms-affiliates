@@ -4,20 +4,39 @@
 {% set plugin = config.plugin("@akashacms/plugins-affiliates") %}
 
 {%- set accordion_id = id + "-accordion" -%}
-{% call ak_bootstrap.collapse_container(id=accordion_id) %}
-    {% set first = "true" %}
-    {% for productid in products %}
-        {% if first === "true" %}
-        {% set collapsed = "true" %}
-        {% else %}
-        {% set collapsed = "false" %}
-        {% endif %}
-        {% set first = "false" %}
+{%- call ak_bootstrap.collapse_container(id=accordion_id) -%}
+    {%- set first = "true" -%}
+    {% for productid in products -%}
+        {%- if first === "true" -%}
+        {%- set collapsed = "true" -%}
+        {%- else -%}
+        {%- set collapsed = "false" -%}
+        {%- endif -%}
+        {%- set first = "false" -%}
+        {#-
+        The issue here is that getProducData is async,
+        and cannot be called from the macro.  Instead,
+        we must use the custom element where the
+        async code can be executed.
+
         {% set product = plugin.getProductData(undefined, productid) %}
+        <p>before collapse item productid {{ productid }}</p>
+        -#}
+        <affiliate-product
+            template="affiliate-product-callapse-item.html.njk"
+            parentid="{{ addordion_id }}"
+            productid="{{ productid }}">
+        </affiliate-product>
+        {# 
         {% call ak_bootstrap.collapse_item(id=product.anchorName + "-product-container",
                 parentID=accordion_id, title=product.productname,
                 thumburl=product.productimgurl, collapsed=collapsed) %}
-            {% call ak_affiliates.aff_product(product=product) %}{% endcall %}
+            <p>Within collapse item</p>
+            <affiliate-product
+                productid="{{ productid }}">
+            </affiliate-product>
+            {# {% call ak_affiliates.aff_product(product=product) %}{% endcall %} # }
         {% endcall %}
-    {% endfor %}
-{% endcall %}
+        #}
+    {%- endfor -%}
+{%- endcall -%}
