@@ -7,10 +7,16 @@
 {%- call ak_bootstrap.collapse_container(id=accordion_id) -%}
     {%- set first = "true" -%}
     {% for productid in products -%}
+        {#
+        Make it so the first item in the accordion
+        is not collapsed --- collapsed=false
+
+        The other items must be collapsed
+         #}
         {%- if first === "true" -%}
-        {%- set collapsed = "true" -%}
-        {%- else -%}
         {%- set collapsed = "false" -%}
+        {%- else -%}
+        {%- set collapsed = "true" -%}
         {%- endif -%}
         {%- set first = "false" -%}
         {#-
@@ -25,18 +31,8 @@
         <affiliate-product
             template="affiliate-product-callapse-item.html.njk"
             parentid="{{ accordion_id }}"
-            productid="{{ productid }}">
+            productid="{{ productid }}"
+            collapsed="{{ collapsed }}">
         </affiliate-product>
-        {# 
-        {% call ak_bootstrap.collapse_item(id=product.anchorName + "-product-container",
-                parentID=accordion_id, title=product.productname,
-                thumburl=product.productimgurl, collapsed=collapsed) %}
-            <p>Within collapse item</p>
-            <affiliate-product
-                productid="{{ productid }}">
-            </affiliate-product>
-            {# {% call ak_affiliates.aff_product(product=product) %}{% endcall %} # }
-        {% endcall %}
-        #}
     {%- endfor -%}
 {%- endcall -%}
