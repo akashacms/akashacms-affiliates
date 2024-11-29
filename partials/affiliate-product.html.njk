@@ -1,36 +1,48 @@
 {% import "ak_affiliates_macros.njk" as ak_affiliates with context %}
 {% import "ak_bootstrap_macros.njk" as ak_bootstrap with context %}
 
+{#- <p>affiliate-product.html.njk
+    anchorName {{ anchorName }}
+    productname {{ productname }}
+    productimgurl {{ productimgurl }}
+</p> -#}
+
 <div class="affiliateproduct" style="clear: both;" 
         {% if anchorName %}id="{{ anchorName }}"{% endif %} >
-    {% if productimgurl  %}
-        {% call ak_bootstrap.card_block(additionalClasses="float-right",
-                                        style="width: 150px;",
-                                        cardImageTop=productimgurl,
-                                        cardImageAlt="Buy "+ productname,
-                                        cardImageStyle="width: 100%;") %}
-            {% include "affiliate-product-gallery.html.njk" %}
-        {% endcall %}
-    {% endif %}
+    {%- if productimgurl  -%}
+        {%- call ak_bootstrap.card_block(additionalClasses="float-right",
+                style="width: 150px;",
+                cardImageTop=productimgurl,
+                cardImageAlt="Buy "+ productname,
+                cardImageStyle="width: 100%;") -%}
+            {%- include "affiliate-product-gallery.html.njk" -%}
+        {%- endcall -%}
+    {%- endif -%}
     <div class="productdescription">
         <h2 class="infobox-title">
-            {% if productbuyurl %}
+            {%- if productbuyurl -%}
                 <a class="affproductname" href="{{ productbuyurl }}" 
                         {% if productrel %}rel="{{ productrel | safe }}"{% endif %} >
                     {{ productname | safe }}</a>
-            {% else %}
+            {%- else -%}
                 {{ productname | safe }}
-            {% endif %}
+            {%- endif -%}
         </h2>
-        {% if productdescription %}{{ productdescription }}{% endif %}
-        {% if partialBody %}{{ partialBody }}{% endif %}
+        {%- if productdescription -%}
+        {{ productdescription }}
+        {%- endif -%}
+        {%- if partialBody -%}
+        {{ partialBody }}
+        {%- endif -%}
     </div>
 
     {% include "affiliate-product-attributes.html.njk" %}
 
-    {% call ak_bootstrap.card_block(id=code + "-buy-block", header="Buy " + productname) %}
-    {% include "affiliate-product-purchase-options-bootstrap.html.njk" %}
-    {% endcall %}
+    {%- call ak_bootstrap.card_block(
+        id=code + "-buy-block",
+        header="Buy " + productname) -%}
+    {%- include "affiliate-product-purchase-options-bootstrap.html.njk" -%}
+    {%- endcall -%}
 
     <div class="affiliate-product-sponsored">Sponsored</div>
 
