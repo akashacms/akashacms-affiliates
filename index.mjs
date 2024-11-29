@@ -631,7 +631,13 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.njk";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const parentID = $element.attr('parentid')
+        const parentID = $element.attr('parentid');
+        const collapsed = $element.attr('collapsed')
+                    ? $element.attr('collapsed')
+                    : "false";
+        if (collapsed !== 'true' && collapsed !== 'false') {
+            throw new Error(`affiliate-product, collapsed must be 'true' or 'false', got ${util.inspect(collapsed)}`);
+        }
         // console.log(`affiliate-data ${util.inspect(productid)} ${util.inspect(href)} ${util.inspect(metadata.document.path)}`);
         const data = await plugin.getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
@@ -649,9 +655,12 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
             data.anchorName = data.code;
         }
         data.parentID = parentID;
+        data.collapsed = collapsed;
         // console.log(data);
         data.productlinks = plugin.productLinks(data);
         data.partialBody = $element.html();
+
+        // console.log(`affiliate-product ${template} productid ${productid} - href ${href} - parentID ${parentID} `, data);
         // The default template has several custom elements
         dirty();
         return this.array.options.config.akasha.partial(this.array.options.config, template, data);
