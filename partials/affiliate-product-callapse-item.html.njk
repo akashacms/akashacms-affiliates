@@ -6,10 +6,7 @@
         id=anchorName + "-product-container",
         parentID=parentID,
         title=productname,
-        thumburl=productimgurl, collapsed=collapsed) %}
-    <p>Within collapse item</p>
-    {# <affiliate-product
-        productid="{{ productid }}"> 
-    </affiliate-product> #}
+        thumburl=productimgurl,
+        collapsed=collapsed) %}
     {% call ak_affiliates.aff_product(product=product) %}{% endcall %}
 {% endcall %}
