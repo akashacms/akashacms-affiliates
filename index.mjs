@@ -56,6 +56,23 @@ db.createIndex({
     }
 });
 
+// This lets us track activity in the database.
+// For "production" we only need to be notified
+// of errors.  The other events are useful
+// when debugging.
+db.changes({
+    include_docs: true
+})
+// .on('change', (change) => {
+//     console.log(`Affiliates DB saw change `, change);
+// })
+// .on('complete', (info) => {
+//     console.log(`Affiliates DB saw complete `, info);
+// })
+.on('error', (err) => {
+    console.log(`Affiliates DB saw error `, err);
+});
+
 const __dirname = import.meta.dirname;
 
 // console.log(`index.mjs `, db);
@@ -201,7 +218,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
         try {
             found = await db.get(productid);
         } catch (err) {
-            console.warn(`getProductByCode ERROR ${err.message}`);
+            console.warn(`getProductByCode ERROR ${err.message}`, found);
         }
         // console.log(`getProductByCode ${productid} found=`, found);
 
@@ -218,7 +235,11 @@ export class AffiliatesPlugin extends akasha.Plugin {
     async affiliateProduct(config, productid, data) {
         let _data = await  this.getProductByCode(productid);
         if (_data) {
-            await this.deleteProductByCode(productid);
+            // If there is already an existing document for
+            // the productid, then we need to make this an update
+            // by adding the ._rev value.  Otherwise an error
+            // is thrown.
+            data._rev = _data._rev
         }
         if (data.productamzn) {
             data.productamzn = data.productamzn.map(item => {
@@ -226,7 +247,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
                 return item;
             });
         }
-        // console.log(`affiliateProduct adding ${data.code} ${data.productname}`);
+        // console.log(`affiliateProduct adding ${data.code} ${data.productname}`, data);
         // The code field is the primary index
         // For PouchDB this is _id
         data._id = data.code;
@@ -311,7 +332,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
     // such metadata
 
     async onFileAdded(config, collection, vpinfo) {
-        // console.log(`onFileAdded ${vpinfo.vpath}`, vpinfo.docMetadata.products);
+        // console.log(`onFileAdded ${vpinfo?.vpath}`, vpinfo?.docMetadata?.products);
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
@@ -319,13 +340,17 @@ export class AffiliatesPlugin extends akasha.Plugin {
                 // if (!(product.doc)) product.doc = {};
                 product.doc_vpath = vpinfo.vpath;
                 product.doc_renderPath = vpinfo.renderPath;
-                await this.affiliateProduct(config, product.code, product);
+                try {
+                    await this.affiliateProduct(config, product.code, product);
+                } catch (err) {
+                    console.warn(`onFileAdded caught error for ${util.inspect(product)}`, err.stack);
+                }
             }
         }
     }
 
     async onFileChanged(config, collection, vpinfo) {
-        console.log(`onFileChanged ${vpinfo.vpath}`, vpinfo.docMetadata.products);
+        // console.log(`onFileChanged ${vpinfo.vpath}`, vpinfo.docMetadata.products);
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
@@ -333,7 +358,11 @@ export class AffiliatesPlugin extends akasha.Plugin {
                 if (!(product.doc)) product.doc = {};
                 product.doc.vpath = vpinfo.vpath;
                 product.doc.renderPath = vpinfo.renderPath;
-                await this.affiliateProduct(config, product.code, product);
+                try {
+                    await this.affiliateProduct(config, product.code, product);
+                } catch (err) {
+                    console.warn(`onFileChanged caught error for ${util.inspect(product)}`, err.stack);
+                }
             }
         }
     }
