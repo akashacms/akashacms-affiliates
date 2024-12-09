@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2017, 2018, 2019 David Herron
+ * Copyright 2017, 2018, 2019, 2024 David Herron
  *
  * This file is part of AkashaCMS-affiliates (http://akashacms.com/).
  *
@@ -27,58 +27,13 @@ import akasha from 'akasharender';
 const mahabhuta = akasha.mahabhuta;
 import yaml from 'js-yaml';
 import domainMatch from 'domain-match';
-
-// import { sqdb } from 'akasharender/dist/sqdb.js';
-import { default as PouchDB } from 'pouchdb';
-import { default as PouchDBFind } from 'pouchdb-find';
-PouchDB.plugin(PouchDBFind);
-
-const db = new PouchDB('affiliates');
-db.createIndex({
-    index: {
-        fields: [ 'code' ],
-        name: 'code',
-        ddoc: 'code'
-    }
-});
-db.createIndex({
-    index: {
-        fields: [ 'doc_vpath' ],
-        name: 'doc_vpath',
-        ddoc: 'doc_vpath'
-    }
-});
-db.createIndex({
-    index: {
-        fields: [ 'doc_renderPath' ],
-        name: 'doc_renderPath',
-        ddoc: 'doc_renderPath'
-    }
-});
-
-// This lets us track activity in the database.
-// For "production" we only need to be notified
-// of errors.  The other events are useful
-// when debugging.
-db.changes({
-    include_docs: true
-})
-// .on('change', (change) => {
-//     console.log(`Affiliates DB saw change `, change);
-// })
-// .on('complete', (info) => {
-//     console.log(`Affiliates DB saw complete `, info);
-// })
-.on('error', (err) => {
-    console.log(`Affiliates DB saw error `, err);
-});
+import { newSQ3DataStore } from 'akasharender/dist/sqdb.js';
 
 const __dirname = import.meta.dirname;
 
-// console.log(`index.mjs `, db);
-
 const pluginName = "@akashacms/plugins-affiliates";
 
+var sq3db;
 
 export class AffiliatesPlugin extends akasha.Plugin {
 
@@ -106,85 +61,11 @@ export class AffiliatesPlugin extends akasha.Plugin {
         options.noViglinks = [];
         this.#data_files = [];
 
-        // sqdb._db.run(`
-        //     CREATE TABLE AFFILIATES (
-        //         code TEXT,
-        //         doc_vpath TEXT,
-        //         doc_renderPath TEXT,
-        //         anchorName TEXT,
-        //         productname TEXT,
-        //         productbuyurl TEXT,
-        //         productimgurl TEXT,
-        //         gallery TEXT,
-        //         productrel TEXT,
-        //         productdescription TEXT,
-        //         productattributes JSON - TBD,
-        //         productamzn JSON - TBD,
-        //         amznassociatetag TEXT,
-        //         productlinks JSON - TBD
-        //     )    
-        // `)
+        sq3db = newSQ3DataStore('affiliates');
+
     }
 
     get config() { return this.#config; }
-
-    // getProductByCode(productid)
-    // let found = coll.find({
-    //    code: { '$eq': productid }
-    // });
-    //
-    // deleteProductByCode(productid)
-    // coll.findAndRemove({
-    //    code: { '$eq': productid }
-    // });
-    //
-    // affiliateProduct(config, productid, data)
-    // coll.insert(data);
-    // These call affiliateProduct
-    // onFileAdded(config, collection, vpinfo) {
-    //
-    // onFileUnlinked(config, collection, vpinfo) {
-    // coll.findAndRemove({
-    //    doc_vpath: { '$eq': vpinfo.vpath }
-    // });
-    //
-    // filterProducts(searchFN) {
-    // const products = this.getAllProducts().filter(searchFN);
-    // onFileChanged(config, collection, vpinfo) {
-    //
-    // select(selector) {
-    // const found = coll.find(selector);
-    //
-    // getProductData(_href, productid) {
-    // if (!productid) return this.getRandomProduct(href);
-    // const selector = {
-    //    code: { '$eq': productid }
-    // };
-    // if (href) {
-    //    selector['$or'] = [
-    //        { doc_vpath: { '$eq': href } },
-    //        { doc_renderPath: { '$eq': href } }
-    //    ];
-    // }
-    // const found = this.select(selector);
-    //
-    // getProductList(_href, productids) {
-    // for (let productid of productids) {
-    //    ret.push(this.getProductData(href, productid));
-    // }
-    //
-    // getAllProducts() {
-    //    return this.select({});
-    // }
-
-    // getCache() {
-    //     // Not needed for PouchDB
-    //     // const coll = this.akasha.filecache.getCollection(pluginName);
-    //     // if (!coll) {
-    //     //     throw new Error(`${pluginName} getCache failed to getCache ${coll}`);
-    //     // }
-    //     // return coll;
-    // }
 
     // Ensure the cache is set up
     async onPluginCacheSetup() {
@@ -192,13 +73,6 @@ export class AffiliatesPlugin extends akasha.Plugin {
 
         for (let datafile of this.#data_files) {
             const doc = yaml.safeLoad(await fsp.readFile(datafile, 'utf8'));
-            // console.log(`onPluginCacheSetup loading ${doc.products.length} items from ${datafile}`, doc.products.map(prod => {
-            //     return {
-            //         datafile: datafile,
-            //         code: prod.code,
-            //         productname: prod.productname
-            //     }
-            // }));
             for (let product of doc.products) {
                 if (!product) {
                     throw new Error(`Undefined product found in ${yamlFile}`);
@@ -212,11 +86,9 @@ export class AffiliatesPlugin extends akasha.Plugin {
     }
 
     async getProductByCode(productid) {
-        // const coll = this.getCache();
-        // console.log(`getProductByCode ${productid}`);
         let found;
         try {
-            found = await db.get(productid);
+            found = await sq3db.get(productid);
         } catch (err) {
             console.warn(`getProductByCode ERROR ${err.message}`, found);
         }
@@ -228,19 +100,10 @@ export class AffiliatesPlugin extends akasha.Plugin {
     }
 
     async deleteProductByCode(productid) {
-        const doc = await db.get(productid);
-        await db.remove(doc);
+        await sq3db.remove(productid);
     }
 
     async affiliateProduct(config, productid, data) {
-        let _data = await  this.getProductByCode(productid);
-        if (_data) {
-            // If there is already an existing document for
-            // the productid, then we need to make this an update
-            // by adding the ._rev value.  Otherwise an error
-            // is thrown.
-            data._rev = _data._rev
-        }
         if (data.productamzn) {
             data.productamzn = data.productamzn.map(item => {
                 item.affcode = this.options.amazonAffiliateCode[item.countryCode];
@@ -248,10 +111,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
             });
         }
         // console.log(`affiliateProduct adding ${data.code} ${data.productname}`, data);
-        // The code field is the primary index
-        // For PouchDB this is _id
-        data._id = data.code;
-        const result = await db.put(data);
+        const result = await sq3db.put(productid, data);
 
         // console.log(`affiliateProduct after adding ${data.code} result=`, result);
     }
@@ -304,10 +164,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
     }
 
     async filterProducts(searchFN) {
-        const products = (await db.allDocs({
-            include_docs: true,
-            attachments: true
-        }))
+        const products = await sq3db.findAll();
         // console.log(`filterProducts `, products);
         //
         // This returns an object with a rows field
@@ -317,13 +174,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
         //
         // We eliminate the later, then pull out the
         // 'doc' field because that's the desired data.
-        return products.rows
-            .filter(item => {
-                return ! item.id.startsWith('_design/')
-            })
-            .map(item => {
-                return item.doc;
-            })
+        return products
             .filter(searchFN);
     }
 
@@ -372,24 +223,17 @@ export class AffiliatesPlugin extends akasha.Plugin {
     // document which has been removed
 
     async onFileUnlinked(config, collection, vpinfo) {
-        // const coll = this.getCache();
-        // coll.findAndRemove({
-        //     doc_vpath: { '$eq': vpinfo.vpath }
-        // });
-
-        const founc = await db.find({
-            selector: {
-                doc_vpath: { '$eq': vpinfo.vpath }
-            }
+        const found = await sq3db.find({
+            '$.doc_vpath': { '$eq': vpinfo.vpath }
         });
         for (const f in found) {
-            await db.remove(f);
+            await sq3db.remove(f);
         }
     }
 
     async select(selector) {
         // const coll = this.getCache();
-        const found = await db.find({ selector });
+        const found = await sq3db.find({ selector });
         if (!found) return undefined;
         if (!Array.isArray(found)) return undefined;
         if (found.length <= 0) return undefined;
@@ -416,28 +260,24 @@ export class AffiliatesPlugin extends akasha.Plugin {
             throw new Error(`getProductData must have href and/or productid, had neither`);
         }
         const selector = {
-                code: productid,
-                '$or': [
-                    { doc_vpath: href },
-                    { doc_renderPath: href }
-                ]
+            '$.code': productid,
+            '$or': [
+                { '$.doc_vpath': href },
+                { '$.doc_renderPath': href }
+            ]
         };
         // const found = await this.select(selector);
-        const found = await db.find({
-            selector
-        });
+        const found = await sq3db.find(selector);
         if (!found
-         || !(typeof found === 'object')
-         || !('docs' in found)
-         || !(Array.isArray(found.docs))
-         || found.docs.length <= 0
+         || !(Array.isArray(found))
+         || found.length <= 0
         ) {
             console.log(`getProductData failed to find anything for ${productid} ${href} ${JSON.stringify(selector)}`, found);
             // console.log(filecache.documents.find(href));
             return undefined;
         }
         // console.log(`getProductData ${util.inspect(selector)}`, found);
-        return found.docs[0];
+        return found[0];
     }
 
     async getProductList(_href, productids) {
@@ -468,11 +308,11 @@ export class AffiliatesPlugin extends akasha.Plugin {
         const selector = {};
         if (href) {
             selector['$or'] = [
-                { doc_vpath: { '$eq': href } },
-                { doc_renderPath: { '$eq': href } }
+                { '$.doc_vpath': href },
+                { '$.doc_renderPath': href }
             ];
         }
-        const found = await this.select(selector);
+        const found = await sq3db.find(selector);
         if (!found
          || !Array.isArray(found)
          || found.length <= 0
@@ -486,52 +326,8 @@ export class AffiliatesPlugin extends akasha.Plugin {
     }
 
     async getAllProducts() {
-        const ret = (await db.allDocs({
-            include_docs: true,
-            attachments: true
-        }));
-        // In the query I'm looking at, there
-        // are three items of this nature:
-        //    {
-        //       id: '_design/doc_vpath',
-        //       key: '_design/doc_vpath',
-        //       value: { rev: '1-5a9153183639f667fe6021bea8b93df3' },
-        //       doc: {
-        //         language: 'query',
-        //         views: [Object],
-        //        _id: '_design/doc_vpath',
-        //        _rev: '1-5a9153183639f667fe6021bea8b93df3'
-        //       }
-        //     }
-        //
-        // THis .filter section is to
-        // eliminate such entries
-        const ret2 = ret.rows.filter(item => {
-            if ('language' in item.doc
-             && item.doc.language === 'query'
-            ) {
-                return false;
-            } else {
-                return true;
-            }
-        });
-        // The remaining items have this shape:
-        //
-        //      {
-        //        id: 'efergy-elite-wireless-electricity-monitor',
-        //        key: 'efergy-elite-wireless-electricity-monitor',
-        //        value: { rev: '19-de9a1f2a2daed2ae829f7360f5355252' },
-        //        doc: {
-        //            ... The actual document
-        //        }
-        //      }
-        //
-        // This section converts it to an
-        // array of the actual documents.
-        const ret3 = ret2.map(item => {
-            return item.doc;
-        });
-        return ret3;
+        const ret = await sq3db.findAll();
+        return ret;
     }
 
     // Construct a productlinks array making sure to synthesize
