@@ -257,7 +257,11 @@ export class AffiliatesPlugin extends akasha.Plugin {
             return this.getProductByCode(productid);
         }
         if (!href && !productid) {
-            throw new Error(`getProductData must have href and/or productid, had neither`);
+            // Instead of throwing an error, look further
+            // afield for a random product.  The method
+            // already handles this case.
+            return this.getRandomProduct(undefined);
+            // throw new Error(`getProductData must have href and/or productid, had neither`);
         }
         const selector = {
             '$.code': productid,
