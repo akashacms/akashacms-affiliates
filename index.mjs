@@ -270,6 +270,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
                 { '$.doc_renderPath': href }
             ]
         };
+        // console.log(`getProductData selector ${yaml.dump({ selector }, { indent: 4 })}`)
         // const found = await this.select(selector);
         const found = await sq3db.find(selector);
         if (!found
@@ -316,6 +317,7 @@ export class AffiliatesPlugin extends akasha.Plugin {
                 { '$.doc_renderPath': href }
             ];
         }
+        // console.log(`getRandomProduct selector `, selector);
         const found = await sq3db.find(selector);
         if (!found
          || !Array.isArray(found)
