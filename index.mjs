@@ -374,13 +374,9 @@ export class AffiliatesPlugin extends akasha.Plugin {
 };
 
 function setAmazonAffiliateTag(href, tag) {
-    var urlP = url.parse(href, true, true);
-    if (! urlP.hasOwnProperty('query')) {
-        urlP.query = {};
-    }
-    urlP.query.tag = tag;
-    urlP.search = undefined;
-    return url.format(urlP);
+    const urlP = new URL(href, 'http://example.com');
+    urlP.searchParams.set('tag', tag);
+    return urlP.toString();
 }
 
 export function mahabhutaArray(
