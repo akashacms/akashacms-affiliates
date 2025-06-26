@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2017, 2018, 2019, 2024 David Herron
+ * Copyright 2017, 2018, 2019, 2024, 2025 David Herron
  *
  * This file is part of AkashaCMS-affiliates (http://akashacms.com/).
  *
@@ -17,13 +17,17 @@
  *  limitations under the License.
  */
 
-'use strict';
-
 import { promises as fsp } from 'node:fs';
-import url, { URL } from 'node:url';
+import { URL } from 'node:url';
 import path from 'node:path';
 import util from 'node:util';
 import akasha from 'akasharender';
+import {
+    Configuration,
+    CustomElement,
+    Munger,
+    PageProcessor
+} from 'akasharender';
 const mahabhuta = akasha.mahabhuta;
 import yaml from 'js-yaml';
 import domainMatch from 'domain-match';
@@ -46,15 +50,17 @@ export class AffiliatesPlugin extends akasha.Plugin {
 
     configure(config, options) {
         this.#config = config;
-        this.options = options;
-        options.config = config;
+        // this.config = config;
+        this.akasha = config.akasha;
+        this.options = options ? options : {};
+        this.options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
         config.addLayoutsDir(path.join(__dirname, 'layouts'));
         config.addAssetsDir({
             src: path.join(__dirname, 'buy-images'),
             dest: 'vendor/@akashacms/plugin-affiliates'
         });
-        config.addMahabhuta(mahabhutaArray(options));
+        config.addMahabhuta(mahabhutaArray(options, config, this.akasha, this));
         // options.products = new Map(); // []; -- No longer needed
         options.amazonAffiliateCode = [];
         options.noSkimlinks = [];
@@ -377,21 +383,26 @@ function setAmazonAffiliateTag(href, tag) {
     return url.format(urlP);
 }
 
-export function mahabhutaArray(options) {
+export function mahabhutaArray(
+    options,
+    config, // ?: Configuration,
+    akasha, // ?: any,
+    plugin  // ?: Plugin
+) {
     let ret = new mahabhuta.MahafuncArray(pluginName, options);
-    ret.addMahafunc(new AffiliateLinkMunger());
-    ret.addMahafunc(new AffiliateProductContent());
-    ret.addMahafunc(new AffiliateProductAccordionContent());
-    ret.addMahafunc(new AffiliateProductTableContent());
-    ret.addMahafunc(new AffiliateProductLink());
-    ret.addMahafunc(new AmazonCABuyButtonElement());
-    ret.addMahafunc(new AmazonJPBuyButtonElement());
-    ret.addMahafunc(new AmazonUKBuyButtonElement());
-    ret.addMahafunc(new AmazonUSABuyButtonElement());
-    ret.addMahafunc(new AmazonDEBuyButtonElement());
-    ret.addMahafunc(new AmazonESBuyButtonElement());
-    ret.addMahafunc(new AmazonFRBuyButtonElement());
-    ret.addMahafunc(new AmazonITBuyButtonElement());
+    ret.addMahafunc(new AffiliateLinkMunger(config, akasha, plugin));
+    ret.addMahafunc(new AffiliateProductContent(config, akasha, plugin));
+    ret.addMahafunc(new AffiliateProductAccordionContent(config, akasha, plugin));
+    ret.addMahafunc(new AffiliateProductTableContent(config, akasha, plugin));
+    ret.addMahafunc(new AffiliateProductLink(config, akasha, plugin));
+    ret.addMahafunc(new AmazonCABuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonJPBuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonUKBuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonUSABuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonDEBuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonESBuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonFRBuyButtonElement(config, akasha, plugin));
+    ret.addMahafunc(new AmazonITBuyButtonElement(config, akasha, plugin));
     return ret;
 };
 
@@ -405,20 +416,20 @@ export function mahabhutaArray(options) {
  * 3. If it's a domain where noskim or noviglink is appropriate, do so
  *
  */
-class AffiliateLinkMunger extends mahabhuta.Munger {
+class AffiliateLinkMunger extends Munger {
     get selector() { return "html body a"; }
 
     async process($, $link, metadata, dirty, done) {
-        const plugin = this.array.options.config.plugin(pluginName);
+        const plugin = this.config.plugin(pluginName);
         if (!plugin) throw new Error(`AffiliateLinkMunger did not find plugin ${pluginName}`);
         let href     = $link.attr('href');
         let rel      = $link.attr('rel');
 
         if (!href) return '';
 
-        // We only act on the link if it is external -- has a PROTOCOL and HOST
-        const urlP = url.parse(href, true, true);
-        if (urlP.protocol || urlP.host) {
+        // We only act on the link if it is external
+        const urlP = new URL(href, 'http://example.com');
+        if (urlP.origin !== 'http://example.com') {
 
             [
                 { country: "com", domain: '*.amazon.com' },
@@ -431,21 +442,21 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
                 { country: "it",  domain: '*.amazon.it' }
             ].forEach(amazonSite => {
                 let amazonCode = plugin
-                        .amazonCodeForCountry(this.array.options.config, amazonSite.country);
+                        .amazonCodeForCountry(this.config, amazonSite.country);
                 // console.log(`${urlP.hostname} is ${amazonSite.domain}? ${amazonSite.domain.test(urlP.hostname)} amazonCode ${amazonCode}`);
                 if (domainMatch(amazonSite.domain, href)
                  && amazonCode) {
-                    akasha.linkRelSetAttr($link, 'nofollow', true);
+                    this.akasha.linkRelSetAttr($link, 'nofollow', true);
                     $link.attr('href', setAmazonAffiliateTag(href, amazonCode));
                     // console.log(`set href ${$link.attr('href')} rel ${$link.attr('rel')}`);
                 }
             });
 
             if (plugin.doNoSkimlinksForDomain(this.array.options.config, urlP.hostname)) {
-                akasha.linkRelSetAttr($link, 'noskim', true);
+                this.akasha.linkRelSetAttr($link, 'noskim', true);
             }
             if (plugin.doNoViglinksForDomain(this.array.options.config, urlP.hostname)) {
-                akasha.linkRelSetAttr($link, 'norewrite', true);
+                this.akasha.linkRelSetAttr($link, 'norewrite', true);
             }
         }
 
@@ -453,10 +464,10 @@ class AffiliateLinkMunger extends mahabhuta.Munger {
     }
 }
 
-class AffiliateProductContent extends mahabhuta.CustomElement {
+class AffiliateProductContent extends CustomElement {
     get elementName() { return "affiliate-product"; }
     async process($element, metadata, dirty) {
-        const plugin = this.array.options.config.plugin(pluginName);
+        const plugin = this.config.plugin(pluginName);
         const template = $element.attr('template') 
                 ? $element.attr('template')
                 : "affiliate-product.html.njk";
@@ -494,11 +505,11 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         // console.log(`affiliate-product ${template} productid ${productid} - href ${href} - parentID ${parentID} `, data);
         // The default template has several custom elements
         dirty();
-        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
+        return this.config.akasha.partial(this.config, template, data);
     }
 }
 
-class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
+class AffiliateProductAccordionContent extends CustomElement {
     get elementName() { return "affiliate-product-accordion"; }
     async process($element, metadata, dirty) {
         const template = $element.attr('template') 
@@ -528,7 +539,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             // thumbImageStyle,
             producthref: href
         };
-        data.products = await this.array.options.config.plugin(pluginName)
+        data.products = await this.config.plugin(pluginName)
                                 .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -537,11 +548,11 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-accordion ${id} ${util.inspect(data)}`);
         dirty();
-        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
+        return this.akasha.partial(this.config, template, data);
     }
 }
 
-class AffiliateProductTableContent extends mahabhuta.CustomElement {
+class AffiliateProductTableContent extends CustomElement {
     get elementName() { return "affiliate-product-table"; }
     async process($element, metadata, dirty) {
         const template = $element.attr('template') 
@@ -565,7 +576,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             usefade: "fade",
             thumbImageStyle
         };
-        data.products = await this.array.options.config.plugin(pluginName)
+        data.products = await this.config.plugin(pluginName)
                                 .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -574,11 +585,11 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
         dirty();
-        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
+        return this.akasha.partial(this.config, template, data);
     }
 }
 
-class AffiliateProductLink extends mahabhuta.CustomElement {
+class AffiliateProductLink extends CustomElement {
     get elementName() { return "affiliate-product-link"; }
     async process($element, metadata, dirty) {
         const productid = $element.attr('productid');
@@ -601,12 +612,12 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         let data;
 
         if (typeof random === 'string' && random === 'yes') {
-            data = await this.array.options.config.plugin(pluginName)
+            data = await this.config.plugin(pluginName)
                     .getRandomProduct(href);
         } else {
             // Make sure to not use an href in this search so it will find
             // the productid wherever it's located
-            data = await this.array.options.config.plugin(pluginName)
+            data = await this.config.plugin(pluginName)
                                     .getProductData(undefined, productid);
         }
         if (!data) {
@@ -625,7 +636,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             // Therefore the user of the element is required to set
             // the <code>isdirty</code> flag.
             if (isdirtyattr) dirty();
-            return this.array.options.config.akasha.partial(this.array.options.config, template, {
+            return this.akasha.partial(this.config, template, {
                 productid: productid, href: productHref,
                 title: title ? title : data.productname, thumburl: data.productimgurl,
                 productbuyurl: data.productbuyurl,
@@ -643,7 +654,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     }
 }
 
-class AmazonBuyButtonElement extends mahabhuta.CustomElement {
+class AmazonBuyButtonElement extends CustomElement {
     get elementName() { throw new Error("Use a subclass"); }
     async process($element, metadata, dirty) {
 
@@ -666,7 +677,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
         // console.log(`AmazonBuyButtonElement ${asin} ${this.countryCode} ${affcode} ${template}`);
 
         if (affcode && template) {
-            return this.array.options.config.akasha.partial(this.array.options.config, template, {
+            return this.akasha.partial(this.config, template, {
                     targetBlank: target ? (` target="${target}"`) : "",
                     formDisplay: display ? (` style="display: ${display}" !important;`) : "",
                     ASIN: asin,
