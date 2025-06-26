@@ -595,12 +595,20 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
                 ? $element.attr('docaption')
                 : "true";
         let href = $element.attr('href');
+        let random = $element.attr('random');
         const isdirtyattr = $element.attr('dirty');
-        
-        // Make sure to not use an href in this search so it will find
-        // the productid wherever it's located
-        const data = await this.array.options.config.plugin(pluginName)
-                                .getProductData(undefined, productid);
+
+        let data;
+
+        if (typeof random === 'string' && random === 'yes') {
+            data = await this.array.options.config.plugin(pluginName)
+                    .getRandomProduct(href);
+        } else {
+            // Make sure to not use an href in this search so it will find
+            // the productid wherever it's located
+            data = await this.array.options.config.plugin(pluginName)
+                                    .getProductData(undefined, productid);
+        }
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
         }
