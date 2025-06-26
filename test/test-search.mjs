@@ -1,6 +1,11 @@
 
-const akasha   = require('akasharender');
-const { assert } = require('chai');
+import akasha from 'akasharender';
+import { assert } from 'chai';
+
+import { AffiliatesPlugin } from '../index.mjs';
+import { ThemeBootstrapPlugin } from '@akashacms/theme-bootstrap';
+
+const __dirname = import.meta.dirname;
 
 let config;
 
@@ -13,8 +18,8 @@ describe('build site', function() {
         config.addLayoutsDir('layouts')
             .addDocumentsDir('documents')
             .addPartialsDir('partials');
-        config.use(require('../index.js'))
-            .use(require('@akashacms/theme-bootstrap'));
+        config.use(AffiliatesPlugin)
+            .use(ThemeBootstrapPlugin);
         config.setMahabhutaConfig({
             recognizeSelfClosing: true,
             recognizeCDATA: true,
@@ -36,7 +41,7 @@ describe('build site', function() {
 
     it('should run setup', async function() {
         this.timeout(75000);
-        await akasha.cacheSetupComplete(config);
+        await akasha.setup(config);
     });
 
     it('should build site', async function() {
@@ -56,15 +61,18 @@ describe('build site', function() {
 
 describe('find products', function() {
     it('should have correct number of products', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
-                                    .getAllProducts();
+        let found = await config.plugin('@akashacms/plugins-affiliates')
+                .getAllProducts();
+
+        // console.log(`find correct number of products `, found);
         assert.isNotNull(found);
         assert.isArray(found);
         assert.equal(found.length, 5);
+        // console.log(found);
     });
 
     it('should find product 1785881507', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData(undefined, '1785881507');
         assert.isNotNull(found);
         assert.isNotArray(found);
@@ -73,7 +81,7 @@ describe('find products', function() {
     });
 
     it('should find product wattzilla75', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData(undefined, 'wattzilla75');
         assert.isNotNull(found);
         assert.isNotArray(found);
@@ -82,7 +90,7 @@ describe('find products', function() {
     });
 
     it('should find product maxgreen16gen2', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData(undefined, 'maxgreen16gen2');
         assert.isNotNull(found);
         assert.isNotArray(found);
@@ -93,7 +101,7 @@ describe('find products', function() {
     });
 
     it('should find product in document', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData('products.html', 'P3-international-P4460-kill-a-watt');
         assert.isOk(found);
         assert.isNotArray(found);
@@ -105,7 +113,7 @@ describe('find products', function() {
     });
 
     it('should find product in document with leading slash', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData('/products.html', 'P3-international-P4460-kill-a-watt');
         assert.isOk(found);
         assert.isNotArray(found);
@@ -117,7 +125,7 @@ describe('find products', function() {
     });
 
     it('should find product in document with full file name', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData('/products.html.md', 'P3-international-P4460-kill-a-watt');
         assert.isOk(found);
         assert.isNotArray(found);
@@ -129,7 +137,7 @@ describe('find products', function() {
     });
 
     it('should find product list', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductList(undefined, [
                                 '1785881507',
                                 'wattzilla75',
@@ -177,37 +185,53 @@ describe('find products', function() {
 
 describe('filter products', function() {
     it('should find by code', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                         .filterProducts(item => {
                             // console.log(`item.code ${item.code} === '1785881507'?`)
                             return item.code === '1785881507';
                         });
+        // console.log(found);
+        assert.ok(Array.isArray(found));
         assert.equal(found.length, 1);
         assert.equal(found[0].anchorName, "NodeJSWebDevelopment3rdEdition");
         assert.equal(found[0].productname, "Node.JS Web Development - Third Edition");
     });
 
     it('should find items', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                         .filterProducts(item => {
                             return item.attributes
                                 && item.attributes.volts
                                 && item.attributes.volts === "240 volts";
                         });
 
+        assert.ok(Array.isArray(found));
         assert.equal(found.length, 2);
 
-        assert.equal(found[0].anchorName, "wattzilla75");
-        assert.equal(found[0].productname, "Wall Wattz: EVSE, Level 2, 75 Amp Output, 25' J1772 charging cable w/ Cable Management System, Satin finish, Type 4X outdoor enclosure");
+        let foundWatt = false;
+        let foundMax = false;
+        for (const f of found) {
+            if (f.anchorName === "wattzilla75"
+             && f.productname === "Wall Wattz: EVSE, Level 2, 75 Amp Output, 25' J1772 charging cable w/ Cable Management System, Satin finish, Type 4X outdoor enclosure"
+            ) {
+                foundWatt = true;
+            }
 
-        assert.equal(found[1].anchorName, "maxgreen16gen2");
-        assert.equal(found[1].productname, "MAX GREEN Upgraded Version Level 1&Level 2 EV Charger, Portable Electric Vehicle Charger (16A,120V 25FT) Included Five Adapters, Fast EV Home Charging Station");
+            if (f.anchorName === "maxgreen16gen2"
+             && f.productname === "MAX GREEN Upgraded Version Level 1&Level 2 EV Charger, Portable Electric Vehicle Charger (16A,120V 25FT) Included Five Adapters, Fast EV Home Charging Station"
+            ) {
+                foundMax = true;
+            }
+        }
+
+        assert.ok(foundWatt);
+        assert.ok(foundMax);
     });
 });
 
 describe('Product Links', function() {
     it('should generate productlinks array', async function() {
-        let found = config.plugin('@akashacms/plugins-affiliates')
+        let found = await config.plugin('@akashacms/plugins-affiliates')
                             .getProductData('/products.html.md', 'P3-international-P4460-kill-a-watt');
         assert.isOk(found);
         assert.isNotArray(found);

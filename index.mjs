@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2017, 2018, 2019 David Herron
+ * Copyright 2017, 2018, 2019, 2024 David Herron
  *
  * This file is part of AkashaCMS-affiliates (http://akashacms.com/).
  *
@@ -19,35 +19,34 @@
 
 'use strict';
 
-const fs        = require('fs/promises');
-const url       = require('url');
-const URL       = url.URL;
-const path      = require('path');
-const util      = require('util');
-const akasha    = require('akasharender');
+import { promises as fsp } from 'node:fs';
+import url, { URL } from 'node:url';
+import path from 'node:path';
+import util from 'node:util';
+import akasha from 'akasharender';
 const mahabhuta = akasha.mahabhuta;
-const yaml      = require('js-yaml');
-const domainMatch = require('domain-match');
+import yaml from 'js-yaml';
+import domainMatch from 'domain-match';
+import { newSQ3DataStore } from 'akasharender/dist/sqdb.js';
+
+const __dirname = import.meta.dirname;
 
 const pluginName = "@akashacms/plugins-affiliates";
 
-// This will hold a pointer to the ForerunnerDB collection
-// used by this plugin
-let cache;
-let filecache;
+var sq3db;
 
-const _plugin_config = Symbol('config');
-const _plugin_options = Symbol('options');
-const _plugin_data_files = Symbol('filez');
+export class AffiliatesPlugin extends akasha.Plugin {
 
-module.exports = class AffiliatesPlugin extends akasha.Plugin {
+    #config;
+    #data_files;
+
     constructor() {
         super(pluginName);
     }
 
     configure(config, options) {
-        this[_plugin_config] = config;
-        this[_plugin_options] = options;
+        this.#config = config;
+        this.options = options;
         options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
         config.addLayoutsDir(path.join(__dirname, 'layouts'));
@@ -55,38 +54,25 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
             src: path.join(__dirname, 'buy-images'),
             dest: 'vendor/@akashacms/plugin-affiliates'
         });
-        config.addMahabhuta(module.exports.mahabhutaArray(options));
+        config.addMahabhuta(mahabhutaArray(options));
         // options.products = new Map(); // []; -- No longer needed
         options.amazonAffiliateCode = [];
         options.noSkimlinks = [];
         options.noViglinks = [];
-        this[_plugin_data_files] = [];
+        this.#data_files = [];
+
+        sq3db = newSQ3DataStore('affiliates');
+
     }
 
-    get config() { return this[_plugin_config]; }
-    get options() { return this[_plugin_options]; }
-
-    getCache() {
-        const coll = cache.getCache(pluginName, { create: true });
-        if (!coll) {
-            throw new Error(`${pluginName} getCache failed to getCache ${coll}`);
-        }
-        return coll;
-    }
+    get config() { return this.#config; }
 
     // Ensure the cache is set up
     async onPluginCacheSetup() {
         // console.log(`onPluginCacheSetup`);
 
-        cache = await akasha.cache;
-        filecache = await akasha.filecache;
-
-        this.getCache();
-
-        for (let datafile of this[_plugin_data_files]) {
-            const doc = yaml.safeLoad(await fs.readFile(datafile, 'utf8'));
-            // console.log(`onPluginCacheSetup loading ${doc.products.length} items from ${datafile}`);
-            // console.log(doc.products.length);
+        for (let datafile of this.#data_files) {
+            const doc = yaml.safeLoad(await fsp.readFile(datafile, 'utf8'));
             for (let product of doc.products) {
                 if (!product) {
                     throw new Error(`Undefined product found in ${yamlFile}`);
@@ -94,62 +80,41 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 if (!product.code) {
                     throw new Error(`No product code supplied in ${util.inspect(product)}`);
                 }
-                this.affiliateProduct(this.config, product.code, product);
+                await this.affiliateProduct(this.config, product.code, product);
             }
         }
     }
 
-    getProductByCode(productid) {
-        const coll = this.getCache();
-        let found = coll.find({
-            code: { $eeq: productid }
-        });
+    async getProductByCode(productid) {
+        let found;
+        try {
+            found = await sq3db.get(productid);
+        } catch (err) {
+            console.warn(`getProductByCode ERROR ${err.message}`, found);
+        }
+        // console.log(`getProductByCode ${productid} found=`, found);
+
         if (!found) return undefined;
-        if (!Array.isArray(found)) return undefined;
-        if (found.length <= 0) return undefined;
-        return found[0];
+
+        return found;
     }
 
-    deleteProductByCode(productid) {
-        const coll = this.getCache();
-        coll.remove({
-            code: { $eeq: productid }
-        });
+    async deleteProductByCode(productid) {
+        await sq3db.remove(productid);
     }
 
-    affiliateProduct(config, productid, data) {
-        const coll = this.getCache();
-        let _data = this.getProductByCode(productid);
-        if (_data) {
-            this.deleteProductByCode(productid);
-        }
+    async affiliateProduct(config, productid, data) {
         if (data.productamzn) {
             data.productamzn = data.productamzn.map(item => {
                 item.affcode = this.options.amazonAffiliateCode[item.countryCode];
                 return item;
             });
         }
-        coll.insert(data);
-        // console.log(`NEW affiliateProduct ${productid} ${util.inspect(data.doc)} ${data.productname}`);
-    }
+        // console.log(`affiliateProduct adding ${data.code} ${data.productname}`, data);
+        const result = await sq3db.put(productid, data);
 
-    /* affiliateProduct(config, productid, data) {
-        if (!productid || productid === '') {
-            throw new Error(`Invalid productid ${util.inspect(productid)} for ${util.inspect(data)}`);
-        }
-        if (data.productamzn) {
-            data.productamzn = data.productamzn.map(item => {
-                item.affcode = this.options.amazonAffiliateCode[item.countryCode];
-                return item;
-            });
-        }
-        if (this.options.products.has(productid)) {
-             this.options.products.delete(productid);
-        }
-        this.options.products.set(productid, data);
-        // this.options.products[productid] = data;
-        return this;
-    } */
+        // console.log(`affiliateProduct after adding ${data.code} result=`, result);
+    }
 
     amazonAffiliateCode(config, countryCode, amznCode) {
         this.options.amazonAffiliateCode[countryCode] = amznCode;
@@ -194,42 +159,49 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     // the file name into this array, then in onPluginCacheSetup we
     // step through the array to read the files.
     loadAffiliateProducts(config, yamlFile) {
-        this[_plugin_data_files].push(yamlFile);
+        this.#data_files.push(yamlFile);
         return this;
     }
 
-    filterProducts(searchFN) {
-        const coll = this.getCache();
-        const products = coll.find({});
-        const ret = [];
-        for (let product of products) {
-            // console.log(`key ${key} product ${product}`);
-            if (searchFN(product)) {
-                ret.push(product);
-            }
-        }
-        // console.log(ret);
-        return ret;
+    async filterProducts(searchFN) {
+        const products = await sq3db.findAll();
+        // console.log(`filterProducts `, products);
+        //
+        // This returns an object with a rows field
+        // containing descriptors of the documents, plus
+        // some spurious entries whose `id` starts
+        // with _design/
+        //
+        // We eliminate the later, then pull out the
+        // 'doc' field because that's the desired data.
+        return products
+            .filter(searchFN);
     }
 
     // These two hook functions automatically incorporate
     // affiliate product data from any document that has
     // such metadata
 
-    onFileAdded(config, collection, vpinfo) {
+    async onFileAdded(config, collection, vpinfo) {
+        // console.log(`onFileAdded ${vpinfo?.vpath}`, vpinfo?.docMetadata?.products);
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
             for (let product of vpinfo.docMetadata.products) {
-                if (!(product.doc)) product.doc = {};
-                product.doc.vpath = vpinfo.vpath;
-                product.doc.renderPath = vpinfo.renderPath;
-                this.affiliateProduct(config, product.code, product);
+                // if (!(product.doc)) product.doc = {};
+                product.doc_vpath = vpinfo.vpath;
+                product.doc_renderPath = vpinfo.renderPath;
+                try {
+                    await this.affiliateProduct(config, product.code, product);
+                } catch (err) {
+                    console.warn(`onFileAdded caught error for ${util.inspect(product)}`, err.stack);
+                }
             }
         }
     }
 
-    onFileChanged(config, collection, vpinfo) {
+    async onFileChanged(config, collection, vpinfo) {
+        // console.log(`onFileChanged ${vpinfo.vpath}`, vpinfo.docMetadata.products);
         if (vpinfo.docMetadata
          && vpinfo.docMetadata.products
          && Array.isArray(vpinfo.docMetadata.products)) {
@@ -237,7 +209,11 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
                 if (!(product.doc)) product.doc = {};
                 product.doc.vpath = vpinfo.vpath;
                 product.doc.renderPath = vpinfo.renderPath;
-                this.affiliateProduct(config, product.code, product);
+                try {
+                    await this.affiliateProduct(config, product.code, product);
+                } catch (err) {
+                    console.warn(`onFileChanged caught error for ${util.inspect(product)}`, err.stack);
+                }
             }
         }
     }
@@ -246,23 +222,25 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
     // affiliate product data corresponding to the
     // document which has been removed
 
-    onFileUnlinked(config, collection, vpinfo) {
-        const coll = this.getCache();
-        coll.remove({
-            doc: { vpath: { $eeq: vpinfo.vpath } }
+    async onFileUnlinked(config, collection, vpinfo) {
+        const found = await sq3db.find({
+            '$.doc_vpath': { '$eq': vpinfo.vpath }
         });
+        for (const f in found) {
+            await sq3db.remove(f);
+        }
     }
 
-    select(selector) {
-        const coll = this.getCache();
-        const found = coll.find(selector);
+    async select(selector) {
+        // const coll = this.getCache();
+        const found = await sq3db.find({ selector });
         if (!found) return undefined;
         if (!Array.isArray(found)) return undefined;
         if (found.length <= 0) return undefined;
         return found;
     }
 
-    getProductData(_href, productid) {
+    async getProductData(_href, productid) {
         // console.log(`getProductData ${_href} ${productid}`);
         let href;
         if (_href) {
@@ -272,29 +250,42 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         } else {
             href = undefined;
         }
-        if (!productid) return this.getRandomProduct(href);
-        const selector = {
-            code: { $eeq: productid }
-        };
-        if (href) {
-            selector['$or'] = [
-                { doc: { vpath: { $eeq: href } } },
-                { doc: { renderPath: { $eeq: href } } }
-            ];
+        if (!productid && href) {
+            return this.getRandomProduct(href);
         }
-        const found = this.select(selector);
+        if (productid && !href) {
+            return this.getProductByCode(productid);
+        }
+        if (!href && !productid) {
+            // Instead of throwing an error, look further
+            // afield for a random product.  The method
+            // already handles this case.
+            return this.getRandomProduct(undefined);
+            // throw new Error(`getProductData must have href and/or productid, had neither`);
+        }
+        const selector = {
+            '$.code': productid,
+            '$or': [
+                { '$.doc_vpath': href },
+                { '$.doc_renderPath': href }
+            ]
+        };
+        // console.log(`getProductData selector ${yaml.dump({ selector }, { indent: 4 })}`)
+        // const found = await this.select(selector);
+        const found = await sq3db.find(selector);
         if (!found
-         || !Array.isArray(found)
-         || found.length <= 0) {
-            // console.log(`getProductData failed to find anything for ${productid} ${href} ${JSON.stringify(selector)}`);
+         || !(Array.isArray(found))
+         || found.length <= 0
+        ) {
+            console.log(`getProductData failed to find anything for ${productid} ${href} ${JSON.stringify(selector)}`, found);
             // console.log(filecache.documents.find(href));
             return undefined;
         }
-        // console.log(`getProductData ${util.inspect(selector)}`, found[0]);
+        // console.log(`getProductData ${util.inspect(selector)}`, found);
         return found[0];
     }
 
-    getProductList(_href, productids) {
+    async getProductList(_href, productids) {
         let href;
         if (_href) {
             href = _href.startsWith('/')
@@ -305,12 +296,12 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         }
         let ret = [];
         for (let productid of productids) {
-            ret.push(this.getProductData(href, productid));
+            ret.push(await this.getProductData(href, productid));
         }
         return ret;
     }
 
-    getRandomProduct(_href) {
+    async getRandomProduct(_href) {
         let href;
         if (_href) {
             href = _href.startsWith('/')
@@ -322,16 +313,27 @@ module.exports = class AffiliatesPlugin extends akasha.Plugin {
         const selector = {};
         if (href) {
             selector['$or'] = [
-                { doc: { vpath: { $eeq: href } } },
-                { doc: { renderPath: { $eeq: href } } }
+                { '$.doc_vpath': href },
+                { '$.doc_renderPath': href }
             ];
         }
-        const found = this.select(selector);
-        return found[Math.floor(Math.random() * found.length)];
+        // console.log(`getRandomProduct selector `, selector);
+        const found = await sq3db.find(selector);
+        if (!found
+         || !Array.isArray(found)
+         || found.length <= 0
+        ) {
+            return undefined;
+        } else {
+            return found[
+                Math.floor(Math.random() * found.length)
+            ];
+        }
     }
 
-    getAllProducts() {
-        return this.select({});
+    async getAllProducts() {
+        const ret = await sq3db.findAll();
+        return ret;
     }
 
     // Construct a productlinks array making sure to synthesize
@@ -375,82 +377,7 @@ function setAmazonAffiliateTag(href, tag) {
     return url.format(urlP);
 }
 
-/* -- NO LONGER NEEDED
-async function getProductData(metadata, config, href, productid) {
-    const plugin = config.plugin(pluginName);
-    let data;
-    let products;
-    if (href) {
-        let doc = await akasha.readDocument(config, href);
-        if (doc && "products" in doc.metadata) {
-            products = doc.metadata.products;
-        }
-    }
-    if (!products && "products" in metadata) {
-        products = metadata.products;
-    }
-    if (!products) {
-        products = plugin.options.products;
-    }
-    if (!products) {
-        throw new Error(`getProductData no products found href=${href} productid=${productid}`);
-    }
-    if (productid) {
-        // Either this is a Map of products instances,
-        // Or it is an array of products[productid]
-        // Or an array of objects where product.code === productid
-        if (products instanceof Map) {
-            data = products.get(productid);
-        } else if (Array.isArray(products) && products[productid]) {
-            data = products[productid];
-        } else {
-            data = undefined;
-            for (let product of products) {
-                if (!product) {
-                    // skip over anything like this
-                    continue;
-                }
-                if (product.code === productid) {
-                    data = product;
-                    break;
-                }
-            }
-        }
-    } else {
-        // If no product ID specified, we can select one at random
-        if (products instanceof Map) {
-            let prodz = products.values();
-            data = prodz[Math.floor(Math.random() * prodz.length)]
-        } else {
-            data = products[Math.floor(Math.random() * products.length)];
-        }
-    }
-    if (!data) {
-        throw new Error(`getProductData failed to find data in ${href} for ${productid}`);
-    }
-
-    // Clone the object so we can modify it without risk to the source object
-    let _data = data;
-    data = {};
-    for (var attr in _data) {
-        if (_data.hasOwnProperty(attr)) data[attr] = _data[attr];
-    }
-
-    return data;
-}
-*/
-
-/* - NO LONGER NEEDED
-async function getProductList(metadata, config, href, productids) {
-    let ret = [];
-    for (let productid of productids) {
-        ret.push(await getProductData(metadata, config, href, productid));
-    }
-    return ret;
-}
-*/
-
-module.exports.mahabhutaArray = function(options) {
+export function mahabhutaArray(options) {
     let ret = new mahabhuta.MahafuncArray(pluginName, options);
     ret.addMahafunc(new AffiliateLinkMunger());
     ret.addMahafunc(new AffiliateProductContent());
@@ -481,13 +408,13 @@ module.exports.mahabhutaArray = function(options) {
 class AffiliateLinkMunger extends mahabhuta.Munger {
     get selector() { return "html body a"; }
 
-    process($, $link, metadata, dirty, done) {
+    async process($, $link, metadata, dirty, done) {
         const plugin = this.array.options.config.plugin(pluginName);
         if (!plugin) throw new Error(`AffiliateLinkMunger did not find plugin ${pluginName}`);
         let href     = $link.attr('href');
         let rel      = $link.attr('rel');
 
-        if (!href) return Promise.resolve("");
+        if (!href) return '';
 
         // We only act on the link if it is external -- has a PROTOCOL and HOST
         const urlP = url.parse(href, true, true);
@@ -535,7 +462,15 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
                 : "affiliate-product.html.njk";
         const productid = $element.attr('productid');
         const href = $element.attr('href');
-        const data = plugin.getProductData(href, productid);
+        const parentID = $element.attr('parentid');
+        const collapsed = $element.attr('collapsed')
+                    ? $element.attr('collapsed')
+                    : "false";
+        if (collapsed !== 'true' && collapsed !== 'false') {
+            throw new Error(`affiliate-product, collapsed must be 'true' or 'false', got ${util.inspect(collapsed)}`);
+        }
+        // console.log(`affiliate-data ${util.inspect(productid)} ${util.inspect(href)} ${util.inspect(metadata.document.path)}`);
+        const data = await plugin.getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
             throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
@@ -550,12 +485,16 @@ class AffiliateProductContent extends mahabhuta.CustomElement {
         if (data.code && !data.anchorName) {
             data.anchorName = data.code;
         }
+        data.parentID = parentID;
+        data.collapsed = collapsed;
         // console.log(data);
         data.productlinks = plugin.productLinks(data);
         data.partialBody = $element.html();
+
+        // console.log(`affiliate-product ${template} productid ${productid} - href ${href} - parentID ${parentID} `, data);
         // The default template has several custom elements
         dirty();
-        return akasha.partial(this.array.options.config, template, data);
+        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
     }
 }
 
@@ -589,7 +528,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
             // thumbImageStyle,
             producthref: href
         };
-        data.products = this.array.options.config.plugin(pluginName)
+        data.products = await this.array.options.config.plugin(pluginName)
                                 .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -598,7 +537,7 @@ class AffiliateProductAccordionContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-accordion ${id} ${util.inspect(data)}`);
         dirty();
-        return akasha.partial(this.array.options.config, template, data);
+        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
     }
 }
 
@@ -626,7 +565,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
             usefade: "fade",
             thumbImageStyle
         };
-        data.products = this.array.options.config.plugin(pluginName)
+        data.products = await this.array.options.config.plugin(pluginName)
                                 .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
@@ -635,7 +574,7 @@ class AffiliateProductTableContent extends mahabhuta.CustomElement {
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
         dirty();
-        return akasha.partial(this.array.options.config, template, data);
+        return this.array.options.config.akasha.partial(this.array.options.config, template, data);
     }
 }
 
@@ -660,7 +599,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
         
         // Make sure to not use an href in this search so it will find
         // the productid wherever it's located
-        const data = this.array.options.config.plugin(pluginName)
+        const data = await this.array.options.config.plugin(pluginName)
                                 .getProductData(undefined, productid);
         if (!data) {
             throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
@@ -678,7 +617,7 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
             // Therefore the user of the element is required to set
             // the <code>isdirty</code> flag.
             if (isdirtyattr) dirty();
-            return akasha.partial(this.array.options.config, template, {
+            return this.array.options.config.akasha.partial(this.array.options.config, template, {
                 productid: productid, href: productHref,
                 title: title ? title : data.productname, thumburl: data.productimgurl,
                 productbuyurl: data.productbuyurl,
@@ -696,62 +635,9 @@ class AffiliateProductLink extends mahabhuta.CustomElement {
     }
 }
 
-/* This is an interesting idea but in practice doesn't work.  The issue is how to
- * specify a useful selector as the body of an element.
- *
- * This was tried:
- *
- *   <affiliate-select template-outer="select-container.html.ejs" template-item="select-item.html.ejs">
- *   { "productname": /P4460/ }
- *   </affiliate-select>
- *
- * That is, use a Regular Expression to select product names.  But this
- * just threw a syntax error in JSON.parse, because JSON.parse doesn't
- * understand regular expressions.  Hardcoding the selector as shown below
- * did produce the expected result, but it's not useful if we cannot do this
- * in the code.
- *
-class AffiliateSelectElement extends mahabhuta.CustomElement {
-    get elementName() { return "affiliate-select"; }
-    async process($element, metadata, dirty) {
-        const outerTemplate =  $element.attr('template-outer');
-        const itemTemplate =  $element.attr('template-item');
-        const clazz  = $element.attr('class');
-        const id = $element.attr('id');
-        const _selector = $element.text();
-
-        if (!outerTemplate) {
-            throw new Error(`affiliate-select no outerTemplate in ${metadata.document.path}`);
-        }
-        if (!itemTemplate) {
-            throw new Error(`affiliate-select no itemTemplate in ${metadata.document.path}`);
-        }
-        if (!_selector) {
-            throw new Error(`affiliate-select no _selector in ${metadata.document.path}`);
-        }
-
-        console.log(`affiliate-select _selector `, _selector);
-
-        // const selector = JSON.parse(_selector);
-        // console.log(`affiliate-select selector `, selector);
-        const products = this.array.options.config.plugin(pluginName)
-                                .select({ "productname": /P4460/ });
-        console.log(`affiliate-select products ${products.length} `);
-        const rendered = [];
-        for (let product of products) {
-            rendered.push(await akasha.partial(this.array.options.config, itemTemplate, product));
-        }
-
-        return await akasha.partial(this.array.options.config, outerTemplate, {
-            class: clazz, id, products: rendered
-        });
-    }
-}
-*/
-
 class AmazonBuyButtonElement extends mahabhuta.CustomElement {
     get elementName() { throw new Error("Use a subclass"); }
-    process($element, metadata, dirty) {
+    async process($element, metadata, dirty) {
 
         const asin     = $element.attr('asin');
         const display  = $element.attr('display');
@@ -772,7 +658,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
         // console.log(`AmazonBuyButtonElement ${asin} ${this.countryCode} ${affcode} ${template}`);
 
         if (affcode && template) {
-            return akasha.partial(this.array.options.config, template, {
+            return this.array.options.config.akasha.partial(this.array.options.config, template, {
                     targetBlank: target ? (` target="${target}"`) : "",
                     formDisplay: display ? (` style="display: ${display}" !important;`) : "",
                     ASIN: asin,
@@ -780,7 +666,7 @@ class AmazonBuyButtonElement extends mahabhuta.CustomElement {
                     countryCode: this.countryCode
                 });
         } else {
-            return Promise.resolve("");
+            return '';
         }
     }
 

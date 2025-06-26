@@ -33,6 +33,18 @@ config.plugin('@akashacms/plugins-affiliates')
     .loadAffiliateProducts(config, 'affiliate-products.yml');
 ```
 
+If your Configuration file is in ESM format, do this:
+
+```js
+import { AffiliatesPlugin } from '../index.mjs';
+...
+config.use(AffiliatesPlugin)
+...
+config.plugin('@akashacms/plugins-affiliates')
+   ...
+```
+
+
 The first line of course loads the plugin code.  Then, you configure the plugin by calling the methods.
 
 With `amazonAffiliateCode` you declare your Amazon affiliate code for the given country code.  The country codes supported are as so:
