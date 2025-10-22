@@ -329,11 +329,14 @@ export class AffiliatesPlugin extends akasha.Plugin {
          || !Array.isArray(found)
          || found.length <= 0
         ) {
+            // console.log(`getRandomProduct found nothing returning undefined`);
             return undefined;
         } else {
-            return found[
+            const ret = found[
                 Math.floor(Math.random() * found.length)
             ];
+            // console.log(`getRandomProduct returning `, ret);
+            return ret;
         }
     }
 
@@ -480,10 +483,12 @@ class AffiliateProductContent extends CustomElement {
         const data = await plugin.getProductData(href, productid);
         // const data = await getProductData(metadata, this.array.options.config, href, productid);
         if (!data) {
-            throw new Error(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
+            console.warn(`affiliate-product: No data found for ${productid} in ${metadata.document.path}`);
+            return '';
         }
         if (!data.productname) {
-            throw new Error(`${pluginName} no product name for ${productid} in ${metadata.document.path} ${util.inspect(data)}`);
+            console.warn(`${pluginName} no product name for ${productid} in ${metadata.document.path} ${util.inspect(data)}`);
+            return '';
         }
         // Ensure there is a productlinks array
         if (!data.productlinks) {
@@ -539,7 +544,8 @@ class AffiliateProductAccordionContent extends CustomElement {
                                 .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
-            throw new Error(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
+            console.warn(`affiliate-product-accordion: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
+            return '';
         }
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-accordion ${id} ${util.inspect(data)}`);
@@ -576,7 +582,8 @@ class AffiliateProductTableContent extends CustomElement {
                                 .getProductList(href, productids);
         // data.products = await getProductList(metadata, this.array.options.config, href, productids);
         if (!data.products || data.products.length <= 0) {
-            throw new Error(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
+            console.warn(`affiliate-product-table: No data found for ${util.inspect(productids)} in ${metadata.document.path}`);
+            return '';
         }
         data.products[0].isactive = "show active";
         // console.log(`affiliate-product-table ${id} ${util.inspect(data)}`);
@@ -617,7 +624,8 @@ class AffiliateProductLink extends CustomElement {
                                     .getProductData(undefined, productid);
         }
         if (!data) {
-            throw new Error(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
+            console.warn(`affiliate-product: No product data found for ${productid} in ${metadata.document.path}`);
+            return '';
         }
         // Construct actual href for product, using the anchor.
         // If no href specified in element, use the relative URL of the current page.
