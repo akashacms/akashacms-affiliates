@@ -394,14 +394,14 @@ export function mahabhutaArray(
     ret.addMahafunc(new AffiliateProductAccordionContent(config, akasha, plugin));
     ret.addMahafunc(new AffiliateProductTableContent(config, akasha, plugin));
     ret.addMahafunc(new AffiliateProductLink(config, akasha, plugin));
-    ret.addMahafunc(new AmazonCABuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonJPBuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonUKBuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonUSABuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonDEBuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonESBuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonFRBuyButtonElement(config, akasha, plugin));
-    ret.addMahafunc(new AmazonITBuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonCABuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonJPBuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonUKBuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonUSABuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonDEBuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonESBuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonFRBuyButtonElement(config, akasha, plugin));
+    // ret.addMahafunc(new AmazonITBuyButtonElement(config, akasha, plugin));
     return ret;
 };
 
@@ -658,106 +658,106 @@ class AffiliateProductLink extends CustomElement {
     }
 }
 
-class AmazonBuyButtonElement extends CustomElement {
-    get elementName() { throw new Error("Use a subclass"); }
-    async process($element, metadata, dirty) {
+// class AmazonBuyButtonElement extends CustomElement {
+//     get elementName() { throw new Error("Use a subclass"); }
+//     async process($element, metadata, dirty) {
 
-        const asin     = $element.attr('asin');
-        const display  = $element.attr('display');
-        const affcode  = $element.attr('affcode')
-                ? $element.attr('affcode')
-                : this.array.options.amazonAffiliateCode[this.countryCode];
-        const target   = $element.attr('target')
-                ? $element.attr('target')
-                : "_blank";
-        const template = $element.attr('template')
-                ? $element.attr('template')
-                : this.defaultTemplate;
+//         const asin     = $element.attr('asin');
+//         const display  = $element.attr('display');
+//         const affcode  = $element.attr('affcode')
+//                 ? $element.attr('affcode')
+//                 : this.array.options.amazonAffiliateCode[this.countryCode];
+//         const target   = $element.attr('target')
+//                 ? $element.attr('target')
+//                 : "_blank";
+//         const template = $element.attr('template')
+//                 ? $element.attr('template')
+//                 : this.defaultTemplate;
 
-        if (!asin) {
-            throw new Error(`${this.elementName()}: No ASIN found in ${metadata.document.path}`);
-        }
+//         if (!asin) {
+//             throw new Error(`${this.elementName()}: No ASIN found in ${metadata.document.path}`);
+//         }
 
-        // console.log(`AmazonBuyButtonElement ${asin} ${this.countryCode} ${affcode} ${template}`);
+//         // console.log(`AmazonBuyButtonElement ${asin} ${this.countryCode} ${affcode} ${template}`);
 
-        if (affcode && template) {
-            return this.akasha.partial(this.config, template, {
-                    targetBlank: target ? (` target="${target}"`) : "",
-                    formDisplay: display ? (` style="display: ${display}" !important;`) : "",
-                    ASIN: asin,
-                    affcode: affcode,
-                    countryCode: this.countryCode
-                });
-        } else {
-            return '';
-        }
-    }
+//         if (affcode && template) {
+//             return this.akasha.partial(this.config, template, {
+//                     targetBlank: target ? (` target="${target}"`) : "",
+//                     formDisplay: display ? (` style="display: ${display}" !important;`) : "",
+//                     ASIN: asin,
+//                     affcode: affcode,
+//                     countryCode: this.countryCode
+//                 });
+//         } else {
+//             return '';
+//         }
+//     }
 
-    get defaultTemplate() { throw new Error("Must subclass"); }
-    get countryCode() { throw new Error("Must subclass"); }
-}
+//     get defaultTemplate() { throw new Error("Must subclass"); }
+//     get countryCode() { throw new Error("Must subclass"); }
+// }
 
-// TBD: amazon-com-au-buy
-// TBD: amazon-br-buy
+// // TBD: amazon-com-au-buy
+// // TBD: amazon-br-buy
 
-class AmazonCABuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-ca-buy"; }
-    // get defaultTemplate() { return "amazon-ca-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "ca"; }
-}
+// class AmazonCABuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-ca-buy"; }
+//     // get defaultTemplate() { return "amazon-ca-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "ca"; }
+// }
 
-// TBD: amazon-cn-buy
+// // TBD: amazon-cn-buy
 
-class AmazonJPBuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-co-jp-buy"; }
-    // get defaultTemplate() { return "amazon-co-jp-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "co-jp"; }
-}
+// class AmazonJPBuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-co-jp-buy"; }
+//     // get defaultTemplate() { return "amazon-co-jp-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "co-jp"; }
+// }
 
-class AmazonUKBuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-co-uk-buy"; }
-    // get defaultTemplate() { return "amazon-co-uk-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "co-uk"; }
-}
+// class AmazonUKBuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-co-uk-buy"; }
+//     // get defaultTemplate() { return "amazon-co-uk-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "co-uk"; }
+// }
 
-class AmazonUSABuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-com-buy"; }
-    // get defaultTemplate() { return "amazon-com-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "com"; }
-}
+// class AmazonUSABuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-com-buy"; }
+//     // get defaultTemplate() { return "amazon-com-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "com"; }
+// }
 
-class AmazonDEBuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-de-buy"; }
-    // get defaultTemplate() { return "amazon-de-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "de"; }
-}
+// class AmazonDEBuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-de-buy"; }
+//     // get defaultTemplate() { return "amazon-de-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "de"; }
+// }
 
-class AmazonESBuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-es-buy"; }
-    // get defaultTemplate() { return "amazon-es-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "es"; }
-}
+// class AmazonESBuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-es-buy"; }
+//     // get defaultTemplate() { return "amazon-es-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "es"; }
+// }
 
-class AmazonFRBuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-fr-buy"; }
-    // get defaultTemplate() { return "amazon-fr-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "fr"; }
-}
+// class AmazonFRBuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-fr-buy"; }
+//     // get defaultTemplate() { return "amazon-fr-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "fr"; }
+// }
 
-// TBD amazon-in-buy
+// // TBD amazon-in-buy
 
-class AmazonITBuyButtonElement extends AmazonBuyButtonElement {
-    get elementName() { return "amazon-it-buy"; }
-    // get defaultTemplate() { return "amazon-it-buy.html.ejs"; }
-    get defaultTemplate() { return "amazon-buy-button.html.njk"; }
-    get countryCode() { return "it"; }
-}
+// class AmazonITBuyButtonElement extends AmazonBuyButtonElement {
+//     get elementName() { return "amazon-it-buy"; }
+//     // get defaultTemplate() { return "amazon-it-buy.html.ejs"; }
+//     get defaultTemplate() { return "amazon-buy-button.html.njk"; }
+//     get countryCode() { return "it"; }
+// }
 
 // TBD: amazon-mx-buy
